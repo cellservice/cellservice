@@ -1,5 +1,7 @@
 package snet.tu_berlin.de.mycellservice;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -9,6 +11,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        Button checkServiceStateButton = (Button) findViewById(R.id.checkServiceState);
+        checkServiceStateButton.performClick();
     }
 
     @Override
@@ -49,6 +56,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // method to determine whether the service is running
+    // See http://stackoverflow.com/questions/600207/how-to-check-if-a-service-is-running-on-android
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void updateCellServiceState(View v) {
+        // check whether CellService is running and display in MainActivity
+        TextView serviceIsRunningValueTextView = (TextView)findViewById(R.id.serviceIsRunningValue);
+        serviceIsRunningValueTextView.setText(
+                Boolean.toString(isMyServiceRunning(CellService.class))
+        );
     }
 
 
