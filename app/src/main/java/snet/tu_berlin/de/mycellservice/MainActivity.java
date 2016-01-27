@@ -12,9 +12,16 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 public class MainActivity extends AppCompatActivity {
+
+    DatabaseHelper myDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +38,37 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        myDb = new DatabaseHelper(this);
+
+        rebuildDataTable();
 
         Button checkServiceStateButton = (Button) findViewById(R.id.checkServiceState);
         checkServiceStateButton.performClick();
+    }
+
+    private void rebuildDataTable() {
+        myDb = new DatabaseHelper(this);
+        TableLayout cellTableLayout = (TableLayout) findViewById(R.id.cellTableLayout);
+        cellTableLayout.removeAllViews();
+
+        String[][] databaseEntries = myDb.getAllDataAsArray();
+
+        for (int i = 0; i <databaseEntries.length; i++) {
+
+            TableRow row= new TableRow(this);
+            TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
+            row.setLayoutParams(lp);
+            TextView time = new TextView(this);
+            time.setPadding(0, 0, 10, 0);
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            time.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][0]) * 1000)));
+            TextView event = new TextView(this);
+            event.setPadding(10, 0, 0, 0);
+            event.setText(databaseEntries[i][1]);
+            row.addView(time);
+            row.addView(event);
+            cellTableLayout.addView(row,i);
+        }
     }
 
     @Override
@@ -91,5 +126,10 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(this, CellService.class);
         stopService(i);
         // alternative: stopSelf();
+    }
+
+    public void addData(View v) {
+        myDb.insertData(System.currentTimeMillis() / 1000, "started");
+        rebuildDataTable();
     }
 }
