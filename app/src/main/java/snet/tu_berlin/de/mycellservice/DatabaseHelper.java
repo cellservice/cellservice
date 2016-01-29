@@ -22,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     // Whenever this constructor is called, the database will be created
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, 1);
-        SQLiteDatabase db = this.getWritableDatabase(); // this is just for checking
+        //SQLiteDatabase db = this.getWritableDatabase(); // this is just for checking
     }
 
     @Override
@@ -32,7 +32,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                 "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "TIMESTAMP INTEGER, " +
                 "EVENT TEXT);");
-
+        //db.close();
 
     }
 
@@ -40,7 +40,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
-
+        //db.close();
     }
 
     public boolean insertData(Long timestamp, String event) {
@@ -49,17 +49,13 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         contentValues.put(COL_2, timestamp);
         contentValues.put(COL_3, event);
         long result = db.insert(TABLE_NAME, null, contentValues); // returns -1 if it is not inserted
+        db.close();
         return (result != -1);
     }
 
-    private Cursor getAllDataAsCursor() {
+    public String[][] getAllDataAsArray() {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        return res;
-    }
-
-    public String[][] getAllDataAsArray() {
-        Cursor res = getAllDataAsCursor();
         String[][] cellEventArray = new String[res.getCount()][2];
         int i = 0;
         while(res.moveToNext()) {
@@ -69,6 +65,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
             cellEventArray[i][1] = event;
             i++;
         }
+        db.close();
         return cellEventArray;
     }
 }
