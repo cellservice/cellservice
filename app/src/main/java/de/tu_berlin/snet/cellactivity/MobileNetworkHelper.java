@@ -29,7 +29,7 @@ public class MobileNetworkHelper extends ContextWrapper {
 
     public MobileNetworkHelper(Context base) {
         super(base);
-        myDb = new DatabaseHelper(this);
+        myDb = DatabaseHelper.getInstance(this);
         Log.e("networkhelper", "stopping");
     }
 

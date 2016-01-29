@@ -21,8 +21,6 @@ import java.text.SimpleDateFormat;
 
 public class MainActivity extends AppCompatActivity {
 
-    DatabaseHelper myDb;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        myDb = new DatabaseHelper(this);
 
         rebuildDataTable();
 
@@ -47,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void rebuildDataTable() {
-        myDb = new DatabaseHelper(this);
+        DatabaseHelper myDb = DatabaseHelper.getInstance(this);
         TableLayout cellTableLayout = (TableLayout) findViewById(R.id.cellTableLayout);
         cellTableLayout.removeAllViews();
 
@@ -129,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addData(View v) {
+        DatabaseHelper myDb = DatabaseHelper.getInstance(this);
         myDb.insertData(System.currentTimeMillis() / 1000, "started");
         rebuildDataTable();
     }
