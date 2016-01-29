@@ -1,4 +1,4 @@
-package snet.tu_berlin.de.mycellservice;
+package de.tu_berlin.snet.cellactivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
