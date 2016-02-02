@@ -18,6 +18,22 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final Pair<String, String> COL_ID = new Pair("ID", "INTEGER PRIMARY KEY AUTOINCREMENT");
     private static final Pair<String, String> COL_TIMESTAMP = new Pair("TIMESTAMP", "INTEGER");
     private static final Pair<String, String> COL_EVENT = new Pair("EVENT", "TEXT");
+    private static final Pair<String, String> COL_CELLID = new Pair("CELLID", "INTEGER");
+    private static final Pair<String, String> COL_LAC = new Pair("LAC", "INTEGER");
+    private static final Pair<String, String> COL_MNC = new Pair("MNC", "INTEGER");
+    private static final Pair<String, String> COL_MCC = new Pair("MCC", "INTEGER");
+    private static final Pair<String, String> COL_MTYPE = new Pair("MTYPE", "TEXT");
+    private static final Pair<String, String> COL_DATA_COUNT = new Pair("DATA_COUNT", "INTEGER");
+    private static final Pair<String, String> COL_NETWORK_LAT = new Pair("NETWORK_LAT", "REAL");
+    private static final Pair<String, String> COL_NETWORK_LON = new Pair("NETWORK_LON", "REAL");
+    private static final Pair<String, String> COL_NETWORK_ACC = new Pair("NETWORK_ACC", "REAL");
+    private static final Pair<String, String> COL_WIFI_LAT = new Pair("WIFI_LAT", "REAL");
+    private static final Pair<String, String> COL_WIFI_LON = new Pair("WIFI_LON", "REAL");
+    private static final Pair<String, String> COL_WIFI_ACC = new Pair("WIFI_ACC", "REAL");
+    private static final Pair<String, String> COL_GPS_LAT = new Pair("GPS_LAT", "REAL");
+    private static final Pair<String, String> COL_GPS_LON = new Pair("GPS_LON", "REAL");
+    private static final Pair<String, String> COL_GPS_ACC = new Pair("GPS_ACC", "REAL");
+
 
     private static DatabaseHelper sInstance;
 
@@ -44,9 +60,24 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public void onCreate(SQLiteDatabase db) {
         // create the table
         db.execSQL("CREATE TABLE " + TABLE_NAME + " (" +
-                   COL_ID.first + " " + COL_ID.second + ", " +
-                   COL_TIMESTAMP.first + " " + COL_TIMESTAMP.second + ", " +
-                   COL_EVENT.first + " " + COL_EVENT.second + ");");
+                COL_ID.first + " " + COL_ID.second + ", " +
+                COL_TIMESTAMP.first + " " + COL_TIMESTAMP.second + ", " +
+                COL_EVENT.first + " " + COL_EVENT.second + ", " +
+                COL_CELLID.first + " " + COL_CELLID.second + ", " +
+                COL_LAC.first + " " + COL_LAC.second + ", " +
+                COL_MNC.first + " " + COL_MNC.second + ", " +
+                COL_MCC.first + " " + COL_MCC.second + ", " +
+                COL_MTYPE.first + " " + COL_MTYPE.second + ", " +
+                COL_DATA_COUNT.first + " " + COL_DATA_COUNT.second + ", " +
+                COL_NETWORK_LAT.first + " " + COL_NETWORK_LAT.second + ", " +
+                COL_NETWORK_LON.first + " " + COL_NETWORK_LON.second + ", " +
+                COL_NETWORK_ACC.first + " " + COL_NETWORK_ACC.second + ", " +
+                COL_WIFI_LAT.first + " " + COL_WIFI_LAT.second + ", " +
+                COL_WIFI_LON.first + " " + COL_WIFI_LON.second + ", " +
+                COL_WIFI_ACC.first + " " + COL_WIFI_ACC.second + ", " +
+                COL_GPS_LAT.first + " " + COL_GPS_LAT.second + ", " +
+                COL_GPS_LON.first + " " + COL_GPS_LON.second + ", " +
+                COL_GPS_ACC.first + " " + COL_GPS_ACC.second + ");");
     }
 
     @Override
@@ -67,14 +98,29 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     public String[][] getAllDataAsArray() {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        String[][] cellEventArray = new String[res.getCount()][2];
+        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY id", null);
+        String[][] cellEventArray = new String[res.getCount()][18];
+
         int i = 0;
         while(res.moveToNext()) {
-            String time = res.getString(res.getColumnIndex(COL_TIMESTAMP.first));
-            String event = res.getString(res.getColumnIndex(COL_EVENT.first));
-            cellEventArray[i][0] = time;
-            cellEventArray[i][1] = event;
+            cellEventArray[i][0] = res.getString(res.getColumnIndex(COL_ID.first));
+            cellEventArray[i][1] = res.getString(res.getColumnIndex(COL_TIMESTAMP.first));
+            cellEventArray[i][2] = res.getString(res.getColumnIndex(COL_EVENT.first));
+            cellEventArray[i][3] = res.getString(res.getColumnIndex(COL_CELLID.first));
+            cellEventArray[i][4] = res.getString(res.getColumnIndex(COL_LAC.first));
+            cellEventArray[i][5] = res.getString(res.getColumnIndex(COL_MNC.first));
+            cellEventArray[i][6] = res.getString(res.getColumnIndex(COL_MCC.first));
+            cellEventArray[i][7] = res.getString(res.getColumnIndex(COL_MTYPE.first));
+            cellEventArray[i][8] = res.getString(res.getColumnIndex(COL_DATA_COUNT.first));
+            cellEventArray[i][9] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
+            cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
+            cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
+            cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
+            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
+            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
+            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
+            cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
+            cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
             i++;
         }
 

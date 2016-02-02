@@ -58,10 +58,10 @@ public class MainActivity extends AppCompatActivity {
             TextView time = new TextView(this);
             time.setPadding(0, 0, 10, 0);
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            time.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][0]) * 1000)));
+            time.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][1]) * 1000)));
             TextView event = new TextView(this);
             event.setPadding(10, 0, 0, 0);
-            event.setText(databaseEntries[i][1]);
+            event.setText(databaseEntries[i][2]);
             row.addView(time);
             row.addView(event);
             cellTableLayout.addView(row,i);
