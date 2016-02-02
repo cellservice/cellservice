@@ -3,6 +3,7 @@ package de.tu_berlin.snet.cellactivity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.net.TrafficStats;
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -10,10 +11,14 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
+import de.tu_berlin.snet.cellactivity.util.CellInfo;
+
 
 public class MobileNetworkHelper extends ContextWrapper {
 
-    private CellInfo mLastCellInfo;
+    private CellInfo mLastCellInfo = null;
+
+    private int mLastConnectionType = -1;
 
     private CellInfo getLastCellInfo() {
         return mLastCellInfo;
@@ -37,65 +42,48 @@ public class MobileNetworkHelper extends ContextWrapper {
         Log.e("networkhelper", "starting");
         telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
         phoneStateListener = setupPhoneStateListener();
-        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
     }
 
     public void stopListening() {
         Log.e("networkhelper", "stopping");
-        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE );
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
     }
 
-    private CellInfo getCellInfo() {
-        TelephonyManager tm =(TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        GsmCellLocation location = (GsmCellLocation) tm.getCellLocation();
 
-        /* Why I use this Bitmask:
-         * https://stackoverflow.com/questions/9808396/android-cellid-not-available-on-all-carriers#12969638
-         */
-        int cellID = location.getCid() & 0xffff;
-        int lac = location.getLac();
+    private void updateCellInfo() {
+        try {
+            TelephonyManager tm =(TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            GsmCellLocation location = (GsmCellLocation) tm.getCellLocation();
 
-        return new CellInfo(cellID, lac);
+            /* Why I use this Bitmask:
+             * https://stackoverflow.com/questions/9808396/android-cellid-not-available-on-all-carriers#12969638
+             */
+            int cellID = location.getCid() & 0xffff;
+            int lac = location.getLac();
+
+            String networkOperator = tm.getNetworkOperator();
+            int mcc = Integer.parseInt(networkOperator.substring(0, 3));
+            int mnc = Integer.parseInt(networkOperator.substring(3));
+
+            mLastCellInfo = new CellInfo(cellID, lac, mnc, mcc, getLastConnectionType());
+        }
+        catch (Exception e){
+            mLastCellInfo = new CellInfo();
+        }
     }
 
-    private class CellInfo {
-        private String mCellId, mLac;
 
-        public CellInfo(String cellid, String lac) {
-            mCellId = cellid;
-            mLac = lac;
-        }
+    public int getLastConnectionType() {
+        return mLastConnectionType;
+    }
 
-        public CellInfo(int cellid, int lac) {
-            mCellId = Integer.toString(cellid);
-            mLac = Integer.toString(lac);
-        }
+    public void setLastConnectionType(int lastConnectionType) {
+        this.mLastConnectionType= lastConnectionType;
+    }
 
-        public String getCellId() {
-            return mCellId;
-        }
-
-        public String getLac() {
-            return mLac;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof CellInfo)) {
-                return false;
-            }
-
-            CellInfo that = (CellInfo) other;
-
-            if(that.getCellId().equals(this.getCellId()) && that.getLac().equals(this.getLac())) {
-                return true;
-            } else { return false; }
-        }
-
-        @Override
-        public String toString() {
-            return getCellId() + " / " + getLac();
-        }
+    public CellInfo getCellInfo() {
+        return mLastCellInfo;
     }
 
     public PhoneStateListener setupPhoneStateListener()
@@ -110,6 +98,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 gsmCellLocation.getCid();
                 gsmCellLocation.getLac();
                 gsmCellLocation.getPsc();
+
 
                 Log.e("cellp", "registered location changed: " + gsmCellLocation.toString());
                 myDb.insertData(System.currentTimeMillis() / 1000, "location change: "+gsmCellLocation.toString());
@@ -137,59 +126,8 @@ public class MobileNetworkHelper extends ContextWrapper {
                         break;
                 }
 
-                switch (networkType) {
-                    case TelephonyManager.NETWORK_TYPE_CDMA:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_CDMA");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_EDGE:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_EDGE");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_EVDO_0");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_GPRS:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_GPRS");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_HSDPA:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_HSDPA");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_HSPA:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_HSPA");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_IDEN:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_IDEN");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_LTE:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_LTE");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_UMTS:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_UMTS");
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-                        Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_UNKNOWN");
-                        break;
-                    default:
-                        Log.e("data", "onDataConnectionStateChanged: Undefined Network: "
-                                + networkType);
-                        break;
-                }
+                setLastConnectionType(networkType);
             }
-
-            /** Callback invoked when network signal strengths changes. */
-            public void onSignalStrengthsChanged(SignalStrength signalStrength)
-            {
-                Log.e("cellp", "registered: "+signalStrength.getGsmSignalStrength() + " and cellinfo is "+getCellInfo());
-                CellInfo cellInfo = getCellInfo();
-
-                /* Check whether the cell id changed, which would be another method
-                 * more frequently checking than onCellLocationChanged */
-                if(!cellInfo.equals(getLastCellInfo())) {
-                    setLastCellInfo(cellInfo);
-                    Log.e("cellp", "cellid CHANGED to " + cellInfo);
-                    myDb.insertData(System.currentTimeMillis() / 1000, cellInfo.toString());
-                }
-            }
-
         };
     }
 }
