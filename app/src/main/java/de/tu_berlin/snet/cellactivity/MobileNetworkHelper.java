@@ -3,10 +3,8 @@ package de.tu_berlin.snet.cellactivity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.net.TrafficStats;
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
-import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
@@ -31,6 +29,8 @@ public class MobileNetworkHelper extends ContextWrapper {
     DatabaseHelper myDb;
     TelephonyManager telephonyManager;
     PhoneStateListener phoneStateListener;
+    TrafficObserver trafficObserver;
+    long cellBytes = 0;
 
     public MobileNetworkHelper(Context base) {
         super(base);
@@ -43,11 +43,18 @@ public class MobileNetworkHelper extends ContextWrapper {
         telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
         phoneStateListener = setupPhoneStateListener();
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+
+
+        trafficObserver = TrafficObserver.getInstance();
+        trafficObserver.start();
+        TrafficStateListener trafficStateListener = new TrafficStateListener();
+        trafficObserver.addListener(trafficStateListener);
     }
 
     public void stopListening() {
         Log.e("networkhelper", "stopping");
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        trafficObserver.stop();
     }
 
 
@@ -79,7 +86,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
     public void setLastConnectionType(int lastConnectionType) {
-        this.mLastConnectionType= lastConnectionType;
+        this.mLastConnectionType = lastConnectionType;
     }
 
     public CellInfo getCellInfo() {
@@ -94,20 +101,20 @@ public class MobileNetworkHelper extends ContextWrapper {
             @SuppressLint("NewApi")
             public void onCellLocationChanged(CellLocation location)
             {
-                GsmCellLocation gsmCellLocation = (GsmCellLocation) location;
-                gsmCellLocation.getCid();
-                gsmCellLocation.getLac();
-                gsmCellLocation.getPsc();
+                Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
+                if(cellBytes > 1000) {
+                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes/1000);
+                }
 
-
-                Log.e("cellp", "registered location changed: " + gsmCellLocation.toString());
-                myDb.insertData(System.currentTimeMillis() / 1000, "location change: "+gsmCellLocation.toString());
+                // reset
+                cellBytes = 0;
+                updateCellInfo();
             }
 
             /** invoked when data connection state changes (only way to get the network type) */
             public void onDataConnectionStateChanged(int state, int networkType)
             {
-                Log.e("cellp", "registered data connection change: "+networkType);
+                /*Log.e("cellp", "registered data connection change: "+networkType);
                 switch (state) {
                     case TelephonyManager.DATA_DISCONNECTED:
                         Log.e("data", "onDataConnectionStateChanged: DATA_DISCONNECTED");
@@ -124,10 +131,18 @@ public class MobileNetworkHelper extends ContextWrapper {
                     default:
                         Log.e("data", "onDataConnectionStateChanged: UNKNOWN " + state);
                         break;
-                }
+                }*/
 
                 setLastConnectionType(networkType);
             }
         };
+    }
+
+    class TrafficStateListener implements TrafficListener {
+        @Override
+        public void bytesTransferred(long bytes) {
+            cellBytes += bytes;
+            System.out.println(bytes + " bytes exchanged. Total cellbytes : "+cellBytes);
+        }
     }
 }

@@ -99,6 +99,10 @@ public class CellInfo {
         } else { return false; }
     }
 
+    public String getmConnectionType() {
+        return mConnectionType;
+    }
+
     @Override
     public String toString() {
         return getCellId() + " / " + getLac();
