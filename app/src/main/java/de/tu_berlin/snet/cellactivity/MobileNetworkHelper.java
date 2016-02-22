@@ -3,6 +3,8 @@ package de.tu_berlin.snet.cellactivity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.location.Location;
+import android.location.LocationManager;
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -14,6 +16,7 @@ import de.tu_berlin.snet.cellactivity.util.CellInfo;
 
 public class MobileNetworkHelper extends ContextWrapper {
 
+    private static final String TAG = "T-Lab TRACKER";
     private CellInfo mLastCellInfo = null;
 
     private int mLastConnectionType = -1;
@@ -32,6 +35,10 @@ public class MobileNetworkHelper extends ContextWrapper {
     TrafficObserver trafficObserver;
     long cellBytes = 0;
 
+    //location checker items
+    private LocationManager mLocationManager = null;
+    private LocationChecker locationChecker = null;
+
     public MobileNetworkHelper(Context base) {
         super(base);
         myDb = DatabaseHelper.getInstance(this);
@@ -49,6 +56,9 @@ public class MobileNetworkHelper extends ContextWrapper {
         trafficObserver.start();
         TrafficStateListener trafficStateListener = new TrafficStateListener();
         trafficObserver.addListener(trafficStateListener);
+        //location checker items
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationChecker = new LocationChecker(mLocationManager);
     }
 
     public void stopListening() {
@@ -103,7 +113,15 @@ public class MobileNetworkHelper extends ContextWrapper {
             {
                 Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
                 if(cellBytes > 1000) {
-                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes/1000);
+                    Location locationNet=null;
+                    Location locationGPS=null;
+                    locationNet= locationChecker.getlocationNETWORK();
+                    locationGPS = locationChecker.getlocationGPS();
+                    Log.d(TAG, "Location from GPS when " + " " + locationGPS);
+                    Log.d(TAG, "Location from NETWORK when  " + " " + locationNet);
+                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " + cellBytes / 1000, locationNet.getLatitude());
+
+
                 }
 
                 // reset

@@ -86,11 +86,13 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertData(Long timestamp, String event) {
+    public boolean insertData(Long timestamp, String event, double netlat) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_TIMESTAMP.first, timestamp);
         contentValues.put(COL_EVENT.first, event);
+        contentValues.put(COL_NETWORK_LAT.first, netlat);
+
         // returns -1 if it is not inserted
         long result = db.insert(TABLE_NAME, null, contentValues);
         return (result != -1);

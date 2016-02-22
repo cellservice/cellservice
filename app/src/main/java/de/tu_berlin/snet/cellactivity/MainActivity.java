@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void addData(View v) {
         DatabaseHelper myDb = DatabaseHelper.getInstance(this);
-        myDb.insertData(System.currentTimeMillis() / 1000, "started");
+        myDb.insertData(System.currentTimeMillis() / 1000, "started",10);
         rebuildDataTable();
     }
 }

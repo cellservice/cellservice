@@ -1,12 +1,17 @@
 package de.tu_berlin.snet.cellactivity;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.IBinder;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.Toast;
 
 public class CellService extends Service {
 
+    private static final String TAG = "T-LAB-LocationChecker";
     MobileNetworkHelper mobileNetworkHelper;
 
     public CellService() {
@@ -49,5 +54,7 @@ public class CellService extends Service {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
+
 
 }
