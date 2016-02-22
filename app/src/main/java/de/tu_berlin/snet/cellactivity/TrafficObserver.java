@@ -36,6 +36,7 @@ public class TrafficObserver {
     public void addListener(TrafficListener toAdd) {
         listeners.add(toAdd);
     }
+    public void removeListener(TrafficListener toRemove) { listeners.remove(toRemove); }
 
 
     private long getMobileRxAndTxBytes() {

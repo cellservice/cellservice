@@ -34,6 +34,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     PhoneStateListener phoneStateListener;
     TrafficObserver trafficObserver;
     long cellBytes = 0;
+    private TrafficStateListener trafficStateListener;
     private int mPreviousCallState;
     private CallStateListener callStateListener;
     private SmsReceiver smsReceiver;
@@ -53,7 +54,7 @@ public class MobileNetworkHelper extends ContextWrapper {
 
         trafficObserver = TrafficObserver.getInstance();
         trafficObserver.start();
-        TrafficStateListener trafficStateListener = new TrafficStateListener();
+        trafficStateListener = new TrafficStateListener();
         trafficObserver.addListener(trafficStateListener);
 
         mPreviousCallState = telephonyManager.getCallState();
@@ -70,6 +71,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     public void stopListening() {
         Log.e("networkhelper", "stopping");
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        trafficObserver.removeListener(trafficStateListener);
         trafficObserver.stop();
         telephonyManager.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
         unregisterReceiver(smsReceiver);
@@ -121,7 +123,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             {
                 Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
                 if(cellBytes > 0) {
-                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes);
+                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes/1000f);
                 }
 
                 // reset
