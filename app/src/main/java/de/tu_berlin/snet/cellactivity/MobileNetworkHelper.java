@@ -1,8 +1,11 @@
 package de.tu_berlin.snet.cellactivity;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -33,6 +36,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     long cellBytes = 0;
     private int mPreviousCallState;
     private CallStateListener callStateListener;
+    private SmsReceiver smsReceiver;
 
     public MobileNetworkHelper(Context base) {
         super(base);
@@ -55,6 +59,12 @@ public class MobileNetworkHelper extends ContextWrapper {
         mPreviousCallState = telephonyManager.getCallState();
         callStateListener = new CallStateListener();
         telephonyManager.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+        filter.addAction("android.provider.Telephony.SMS_SENT");
+        smsReceiver = new SmsReceiver();
+        registerReceiver(smsReceiver, filter);
     }
 
     public void stopListening() {
@@ -62,6 +72,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
         trafficObserver.stop();
         telephonyManager.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
+        unregisterReceiver(smsReceiver);
     }
 
 
@@ -189,5 +200,26 @@ public class MobileNetworkHelper extends ContextWrapper {
             }
             mPreviousCallState = newState;
         }
+    }
+
+    public class SmsReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if(action.equals("android.provider.Telephony.SMS_RECEIVED")){
+                //action for sms received
+                Log.e("SMS", "From Broadcast receiver: "+"SMS Received");
+                myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS recv");
+            }
+            /* THIS DOESN'T WORK 
+            * http://stackoverflow.com/questions/990558/android-broadcast-receiver-for-sent-sms-messages
+            * */
+            else if(action.equals("android.provider.Telephony.SMS_SENT")){
+                Log.e("SMS", "From Broadcast receiver: "+"SMS Sent");
+                myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS sent");
+            }
+        }
+        // constructor
+        public SmsReceiver(){}
     }
 }
