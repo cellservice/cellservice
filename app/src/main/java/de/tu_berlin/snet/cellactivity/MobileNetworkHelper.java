@@ -31,6 +31,8 @@ public class MobileNetworkHelper extends ContextWrapper {
     PhoneStateListener phoneStateListener;
     TrafficObserver trafficObserver;
     long cellBytes = 0;
+    private int mPreviousCallState;
+    private CallStateListener callStateListener;
 
     public MobileNetworkHelper(Context base) {
         super(base);
@@ -49,12 +51,17 @@ public class MobileNetworkHelper extends ContextWrapper {
         trafficObserver.start();
         TrafficStateListener trafficStateListener = new TrafficStateListener();
         trafficObserver.addListener(trafficStateListener);
+
+        mPreviousCallState = telephonyManager.getCallState();
+        callStateListener = new CallStateListener();
+        telephonyManager.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 
     public void stopListening() {
         Log.e("networkhelper", "stopping");
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
         trafficObserver.stop();
+        telephonyManager.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
     }
 
 
@@ -143,6 +150,44 @@ public class MobileNetworkHelper extends ContextWrapper {
         public void bytesTransferred(long bytes) {
             cellBytes += bytes;
             System.out.println(bytes + " bytes exchanged. Total cellbytes : "+cellBytes);
+        }
+    }
+
+    private final class CallStateListener extends PhoneStateListener {
+        @Override
+        public void onCallStateChanged(int newState, String incomingNumber) {
+
+            switch (mPreviousCallState) {
+                case TelephonyManager.CALL_STATE_IDLE:
+                    if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
+                        Log.e("callState", "idle --> off hook = new outgoing call");
+                        myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " out: " + incomingNumber);
+                    } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
+                        Log.e("callState", "idle --> ringing = new incoming call");
+                        myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " inc: " + incomingNumber);
+                    }
+                    break;
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                    if (newState == TelephonyManager.CALL_STATE_IDLE) {
+                        Log.e("callState", "off hook --> idle  = disconnected");
+
+                    } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
+                        Log.e("callState", "off hook --> ringing = another call waiting");
+                    }
+                    Log.e("CALL_STATE_OFFHOOK", String.valueOf(newState));
+                    break;
+                case TelephonyManager.CALL_STATE_RINGING:
+                    if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
+                        Log.e("callState", "ringing --> off hook = received");
+                        //makeEntry("Call Received");
+                        myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " recv: "+incomingNumber);
+
+                    } else if (newState == TelephonyManager.CALL_STATE_IDLE) {
+                        Log.e("callState", "ringing --> idle = missed call");
+                    }
+                    break;
+            }
+            mPreviousCallState = newState;
         }
     }
 }
