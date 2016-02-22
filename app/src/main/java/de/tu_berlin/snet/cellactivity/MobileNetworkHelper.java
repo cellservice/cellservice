@@ -120,8 +120,8 @@ public class MobileNetworkHelper extends ContextWrapper {
             public void onCellLocationChanged(CellLocation location)
             {
                 Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
-                if(cellBytes > 1000) {
-                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes/1000);
+                if(cellBytes > 0) {
+                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes);
                 }
 
                 // reset
