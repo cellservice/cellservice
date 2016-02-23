@@ -127,7 +127,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void addData(View v) {
         DatabaseHelper myDb = DatabaseHelper.getInstance(this);
-        myDb.insertData(System.currentTimeMillis() / 1000, "started",10);
+        //public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc, Integer mcc, Double netlat,
+       // Double netlon, Double netacc, Double gpslat, Double gpslon, Double gpsacc)
+        //myDb.insertData(System.currentTimeMillis() / 1000, "started",null,null,null,null,null,null,null,null,null,null,null);
         rebuildDataTable();
     }
 }
