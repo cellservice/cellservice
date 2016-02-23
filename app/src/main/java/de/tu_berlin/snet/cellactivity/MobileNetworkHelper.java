@@ -4,13 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContextWrapper;
-<<<<<<< HEAD
 import android.location.Location;
 import android.location.LocationManager;
-=======
 import android.content.Intent;
 import android.content.IntentFilter;
->>>>>>> 5a839725324a51d4bb0c0af849fe4fd46b2f9f00
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -65,11 +62,11 @@ public class MobileNetworkHelper extends ContextWrapper {
         trafficObserver.start();
         TrafficStateListener trafficStateListener = new TrafficStateListener();
         trafficObserver.addListener(trafficStateListener);
-<<<<<<< HEAD
+
         //location checker items
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationChecker = new LocationChecker(mLocationManager);
-=======
+
 
         mPreviousCallState = telephonyManager.getCallState();
         callStateListener = new CallStateListener();
@@ -80,7 +77,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         filter.addAction("android.provider.Telephony.SMS_SENT");
         smsReceiver = new SmsReceiver();
         registerReceiver(smsReceiver, filter);
->>>>>>> 5a839725324a51d4bb0c0af849fe4fd46b2f9f00
+
     }
 
     public void stopListening() {
@@ -136,8 +133,8 @@ public class MobileNetworkHelper extends ContextWrapper {
             public void onCellLocationChanged(CellLocation location)
             {
                 Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
-<<<<<<< HEAD
-                if(cellBytes > 1000) {
+
+                if(cellBytes > 0) {
                     Location locationNet=null;
                     Location locationGPS=null;
                     locationNet= locationChecker.getlocationNETWORK();
@@ -146,11 +143,6 @@ public class MobileNetworkHelper extends ContextWrapper {
                     Log.d(TAG, "Location from NETWORK when  " + " " + locationNet);
                     myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " + cellBytes / 1000, locationNet.getLatitude());
 
-
-=======
-                if(cellBytes > 0) {
-                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " +cellBytes);
->>>>>>> 5a839725324a51d4bb0c0af849fe4fd46b2f9f00
                 }
 
                 // reset
@@ -201,10 +193,10 @@ public class MobileNetworkHelper extends ContextWrapper {
                 case TelephonyManager.CALL_STATE_IDLE:
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "idle --> off hook = new outgoing call");
-                        myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " out: " + incomingNumber);
+                           // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " out: " + incomingNumber);
                     } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
                         Log.e("callState", "idle --> ringing = new incoming call");
-                        myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " inc: " + incomingNumber);
+                        //myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " inc: " + incomingNumber);
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
@@ -220,7 +212,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "ringing --> off hook = received");
                         //makeEntry("Call Received");
-                        myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " recv: "+incomingNumber);
+                        //myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " recv: "+incomingNumber);
 
                     } else if (newState == TelephonyManager.CALL_STATE_IDLE) {
                         Log.e("callState", "ringing --> idle = missed call");
@@ -238,14 +230,14 @@ public class MobileNetworkHelper extends ContextWrapper {
             if(action.equals("android.provider.Telephony.SMS_RECEIVED")){
                 //action for sms received
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Received");
-                myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS recv");
+               // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS recv");
             }
             /* THIS DOESN'T WORK 
             * http://stackoverflow.com/questions/990558/android-broadcast-receiver-for-sent-sms-messages
             * */
             else if(action.equals("android.provider.Telephony.SMS_SENT")){
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Sent");
-                myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS sent");
+               // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS sent");
             }
         }
         // constructor
