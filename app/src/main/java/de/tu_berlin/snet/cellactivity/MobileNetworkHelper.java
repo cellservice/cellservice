@@ -135,14 +135,8 @@ public class MobileNetworkHelper extends ContextWrapper {
                 Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
 
                 if(cellBytes > 0) {
-                    Location locationNet=null;
-                    Location locationGPS=null;
-                    locationNet= locationChecker.getlocationNETWORK();
-                    locationGPS = locationChecker.getlocationGPS();
-                    Log.d(TAG, "Location from GPS when " + " " + locationGPS);
-                    Log.d(TAG, "Location from NETWORK when  " + " " + locationNet);
-                    myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " + cellBytes / 1000, locationNet.getLatitude());
-
+                   makeEntry(getCellInfo() + " kbytes: " + cellBytes / 1000);
+                  //  myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " kbytes: " + cellBytes / 1000);
                 }
 
                 // reset
@@ -194,9 +188,11 @@ public class MobileNetworkHelper extends ContextWrapper {
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "idle --> off hook = new outgoing call");
                            // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " out: " + incomingNumber);
+                        makeEntry(getCellInfo() + " out: " + incomingNumber);
                     } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
                         Log.e("callState", "idle --> ringing = new incoming call");
                         //myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " inc: " + incomingNumber);
+                        makeEntry(getCellInfo() + " inc: " + incomingNumber);
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
@@ -211,9 +207,8 @@ public class MobileNetworkHelper extends ContextWrapper {
                 case TelephonyManager.CALL_STATE_RINGING:
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "ringing --> off hook = received");
-                        //makeEntry("Call Received");
+                         makeEntry(getCellInfo() + " recv: "+incomingNumber);
                         //myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " recv: "+incomingNumber);
-
                     } else if (newState == TelephonyManager.CALL_STATE_IDLE) {
                         Log.e("callState", "ringing --> idle = missed call");
                     }
@@ -231,6 +226,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 //action for sms received
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Received");
                // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS recv");
+                makeEntry(getCellInfo() + " SMS recv");
             }
             /* THIS DOESN'T WORK 
             * http://stackoverflow.com/questions/990558/android-broadcast-receiver-for-sent-sms-messages
@@ -238,9 +234,68 @@ public class MobileNetworkHelper extends ContextWrapper {
             else if(action.equals("android.provider.Telephony.SMS_SENT")){
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Sent");
                // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS sent");
+                makeEntry(getCellInfo() + " SMS sent");
             }
         }
         // constructor
         public SmsReceiver(){}
+    }
+    public boolean makeEntry(String type){
+        Log.d(TAG, "from MakeEntry method");
+        Location locationNet;
+        Location locationGPS;
+        int isPostProcessflag=0;
+        boolean result=false;
+        double NetLat =0, NetLong =0,Netacc=0;
+        double GPSLat =0, GPSLong =0,GPSacc=0;
+        locationNet= locationChecker.getlocationNETWORK();
+        locationGPS = locationChecker.getlocationGPS();
+        Log.d(TAG, "Location from GPS when "+type +" "+ locationGPS);
+        Log.d(TAG, "Location from NETWORK when  " + type + " " + locationNet);
+
+        if (locationGPS==null) {
+            isPostProcessflag++;
+            GPSLat = Double.MAX_VALUE;
+            GPSLong = Double.MAX_VALUE;
+            GPSacc = Double.MAX_VALUE;
+        }
+        else{
+            GPSLat=locationGPS.getLatitude();
+            GPSLong=locationGPS.getLongitude();
+            GPSacc = locationGPS.getAccuracy();
+        }
+        if (locationNet==null) {
+            isPostProcessflag++;
+            NetLat = Double.MAX_VALUE;
+            NetLong = Double.MAX_VALUE;
+            Netacc = Double.MAX_VALUE;
+        }
+        else{
+            NetLat=locationNet.getLatitude();
+            NetLong=locationNet.getLongitude();
+            Netacc = locationNet.getAccuracy();
+        }
+        result = myDb.insertData(
+                System.currentTimeMillis() / 1000,//utc,
+                type,
+                Integer.parseInt(getCellInfo().getCellId()),//1,
+                Integer.parseInt(getCellInfo().getLac()),
+                Integer.parseInt(getCellInfo().getMnc()),
+                Integer.parseInt(getCellInfo().getMcc()),
+                NetLat,//locationNet.getLatitude(),
+                NetLong,//locationNet.getLongitude(),
+                Netacc,
+                GPSLat,//locationGPS.getLatitude(),
+                GPSLong,//locationGPS.getLongitude(),
+                GPSacc,
+                isPostProcessflag
+        );
+
+        if (result==true)
+            Log.d(TAG,"inserted data to DB");
+        else
+            Log.d(TAG,"Failed to insert data");
+        return result;
+
     }
 }
