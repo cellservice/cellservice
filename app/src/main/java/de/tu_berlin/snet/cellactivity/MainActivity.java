@@ -3,15 +3,21 @@ package de.tu_berlin.snet.cellactivity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -44,27 +50,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void rebuildDataTable() {
+        // get all the database entries
         DatabaseHelper myDb = DatabaseHelper.getInstance(this);
-        TableLayout cellTableLayout = (TableLayout) findViewById(R.id.cellTableLayout);
-        cellTableLayout.removeAllViews();
-
         String[][] databaseEntries = myDb.getAllDataAsArray();
 
-        for (int i = 0; i <databaseEntries.length; i++) {
+        // get the timeline container and inflater to add event items to it
+        LinearLayout eventListLayout = (LinearLayout) findViewById(R.id.eventList);
+        LayoutInflater li =  (LayoutInflater)getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        int durationHeight = 100; // default duration height
 
-            TableRow row= new TableRow(this);
-            TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
-            row.setLayoutParams(lp);
-            TextView time = new TextView(this);
-            time.setPadding(0, 0, 10, 0);
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            time.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][1]) * 1000)));
-            TextView event = new TextView(this);
-            event.setPadding(10, 0, 0, 0);
-            event.setText(databaseEntries[i][2]);
-            row.addView(time);
-            row.addView(event);
-            cellTableLayout.addView(row,i);
+        // variables for sigmoid based function determining time interval drawing length
+        double a = 1.902, b = 2.024, c = 13618, d = 1408;
+
+        for (int i = 0; i <databaseEntries.length; i++){
+            View eventView = li.inflate(R.layout.event_slot, (ViewGroup)null);
+            TextView eventText = (TextView) eventView.findViewById(R.id.eventText);
+            TextView eventTime = (TextView) eventView.findViewById(R.id.eventTime);
+            View eventTimeBar = (View) eventView.findViewById(R.id.eventTimeBar);
+
+            // extract color from string that contains cellid + lac and set it as the background
+            String cellidLAC = databaseEntries[i][2].split("kbytes")[0];
+            String opacity = "#FF";
+            String hexColor = String.format(
+                    opacity + "%06X", (0xFFFFFF & cellidLAC.hashCode()));
+            eventTimeBar.setBackgroundColor(Color.parseColor(hexColor));
+
+            // Display the date as only hours and minutes
+            DateFormat df = new SimpleDateFormat("HH:mm");
+            eventTime.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][1]) * 1000)));
+            eventText.setText(databaseEntries[i][2]);
+
+            // Set the length of the time intervals with a sigmoid based function
+            if( i != 0) {
+                double secondDiff = Double.parseDouble(databaseEntries[i][1]) - Double.parseDouble(databaseEntries[i-1][1]);
+                durationHeight = (int)(100+d + ((a-d)/(1+Math.pow((secondDiff/c),b))));
+            }
+            eventListLayout.addView(eventView, ViewGroup.LayoutParams.WRAP_CONTENT, durationHeight);
         }
     }
 
