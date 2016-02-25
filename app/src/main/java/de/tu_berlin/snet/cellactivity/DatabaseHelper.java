@@ -126,4 +126,49 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
         return cellEventArray;
     }
+
+    public String[][] getAllDataAsArrayOnDate(String date) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE date(TIMESTAMP, 'unixepoch') = '" + date + "' ORDER BY id", null);
+        String[][] cellEventArray = new String[res.getCount()][18];
+
+        int i = 0;
+        while(res.moveToNext()) {
+            cellEventArray[i][0] = res.getString(res.getColumnIndex(COL_ID.first));
+            cellEventArray[i][1] = res.getString(res.getColumnIndex(COL_TIMESTAMP.first));
+            cellEventArray[i][2] = res.getString(res.getColumnIndex(COL_EVENT.first));
+            cellEventArray[i][3] = res.getString(res.getColumnIndex(COL_CELLID.first));
+            cellEventArray[i][4] = res.getString(res.getColumnIndex(COL_LAC.first));
+            cellEventArray[i][5] = res.getString(res.getColumnIndex(COL_MNC.first));
+            cellEventArray[i][6] = res.getString(res.getColumnIndex(COL_MCC.first));
+            cellEventArray[i][7] = res.getString(res.getColumnIndex(COL_MTYPE.first));
+            cellEventArray[i][8] = res.getString(res.getColumnIndex(COL_DATA_COUNT.first));
+            cellEventArray[i][9] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
+            cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
+            cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
+            cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
+            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
+            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
+            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
+            cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
+            cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
+            i++;
+        }
+
+        return cellEventArray;
+    }
+
+    public String[] getLastThreeDates() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT DISTINCT date(TIMESTAMP, 'unixepoch') AS date FROM events ORDER BY date DESC LIMIT 3;", null);
+        String[] dates = new String[3];
+
+        int i = 0;
+        while(res.moveToNext()) {
+            dates[i] = res.getString(0);
+            i++;
+        }
+
+        return dates;
+    }
 }
