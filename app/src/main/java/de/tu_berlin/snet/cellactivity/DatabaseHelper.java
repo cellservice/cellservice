@@ -33,6 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final Pair<String, String> COL_GPS_LAT = new Pair("GPS_LAT", "REAL");
     private static final Pair<String, String> COL_GPS_LON = new Pair("GPS_LON", "REAL");
     private static final Pair<String, String> COL_GPS_ACC = new Pair("GPS_ACC", "REAL");
+    private static final Pair<String, String> COL_POST_PROCESS = new Pair("POST_PROC", "INTEGER");
 
 
     private static DatabaseHelper sInstance;
@@ -77,7 +78,9 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                 COL_WIFI_ACC.first + " " + COL_WIFI_ACC.second + ", " +
                 COL_GPS_LAT.first + " " + COL_GPS_LAT.second + ", " +
                 COL_GPS_LON.first + " " + COL_GPS_LON.second + ", " +
-                COL_GPS_ACC.first + " " + COL_GPS_ACC.second + ");");
+                COL_GPS_ACC.first + " " + COL_GPS_ACC.second + ","+
+                COL_POST_PROCESS.first + " " + COL_POST_PROCESS.second + ");"
+                );
     }
 
     @Override
@@ -86,12 +89,24 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertData(Long timestamp, String event) {
+    public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc, Integer mcc, Double netlat,
+                              Double netlon, Double netacc, Double gpslat, Double gpslon, Double gpsacc, Integer isPostProc) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_TIMESTAMP.first, timestamp);
         contentValues.put(COL_EVENT.first, event);
-        // returns -1 if it is not inserted
+        contentValues.put(COL_CELLID.first, cid);
+        contentValues.put(COL_LAC.first, lac);
+        contentValues.put(COL_MNC.first, mnc);
+        contentValues.put(COL_MCC.first, mcc);
+        contentValues.put(COL_NETWORK_LAT.first, netlat);
+        contentValues.put(COL_NETWORK_LON.first, netlon);
+        contentValues.put(COL_NETWORK_ACC.first, netacc);
+        contentValues.put(COL_GPS_LAT.first, gpslat);
+        contentValues.put(COL_GPS_LON.first, gpslon);
+        contentValues.put(COL_GPS_ACC.first, gpsacc);
+        contentValues.put(COL_POST_PROCESS.first, isPostProc);
+                // returns -1 if it is not inserted
         long result = db.insert(TABLE_NAME, null, contentValues);
         return (result != -1);
     }
