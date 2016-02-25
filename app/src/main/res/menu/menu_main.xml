@@ -3,8 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="de.tu_berlin.snet.cellactivity.MainActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_start_service"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="Start Service"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_stop_service"
+        android:orderInCategory="100"
+        android:title="Stop Service"
         app:showAsAction="never" />
 </menu>

@@ -4,22 +4,22 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 public class MainActivity extends AppCompatActivity {
+    DrawerLayout mDrawerLayout;
+    NavigationView mDrawerNavigationView;
+    FragmentManager mFragmentManager;
+    FragmentTransaction mFragmentTransaction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,44 +28,54 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        /**
+         *Setup the DrawerLayout and NavigationView
+         */
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mDrawerNavigationView = (NavigationView) findViewById(R.id.drawer_navigation) ;
+
+        /**
+         * Lets inflate the very first fragment
+         * Here , we are inflating the TabFragment as the first Fragment
+         */
+
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentTransaction = mFragmentManager.beginTransaction();
+        mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
+        /**
+         * Setup click events on the Navigation View Items.
+         */
+
+        mDrawerNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public boolean onNavigationItemSelected(MenuItem menuItem) {
+                mDrawerLayout.closeDrawers();
+                /* for each drawer item
+
+                if (menuItem.getItemId() == R.id.nav_item) {
+                    FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+                    fragmentTransaction.replace(R.id.containerView, new TimeLineFragment()).commit();
+
+                } */
+
+                return false;
             }
+
         });
 
-        rebuildDataTable();
+        /**
+         * Setup Drawer Toggle of the Toolbar
+         */
 
-        Button checkServiceStateButton = (Button) findViewById(R.id.checkServiceState);
-        checkServiceStateButton.performClick();
-    }
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this,mDrawerLayout, toolbar,R.string.app_name,
+                R.string.app_name);
 
-    private void rebuildDataTable() {
-        DatabaseHelper myDb = DatabaseHelper.getInstance(this);
-        TableLayout cellTableLayout = (TableLayout) findViewById(R.id.cellTableLayout);
-        cellTableLayout.removeAllViews();
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-        String[][] databaseEntries = myDb.getAllDataAsArray();
+        mDrawerToggle.syncState();
 
-        for (int i = 0; i <databaseEntries.length; i++) {
 
-            TableRow row= new TableRow(this);
-            TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
-            row.setLayoutParams(lp);
-            TextView time = new TextView(this);
-            time.setPadding(0, 0, 10, 0);
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            time.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][1]) * 1000)));
-            TextView event = new TextView(this);
-            event.setPadding(10, 0, 0, 0);
-            event.setText(databaseEntries[i][2]);
-            row.addView(time);
-            row.addView(event);
-            cellTableLayout.addView(row,i);
-        }
     }
 
     @Override
@@ -83,7 +93,11 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_start_service) {
+            startCellService();
+            return true;
+        } else if (id == R.id.action_stop_service) {
+            stopCellService();
             return true;
         }
 
@@ -102,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    /*
     public void updateCellServiceState(View v) {
         // check whether CellService is running and display in MainActivity
         TextView serviceIsRunningValueTextView = (TextView)findViewById(R.id.serviceIsRunningValue);
@@ -109,27 +124,20 @@ public class MainActivity extends AppCompatActivity {
                 Boolean.toString(isMyServiceRunning(CellService.class))
         );
     }
+    */
 
 
     // my own onclick methods
-    public void startService(View v) {
+    public void startCellService() {
         Intent i = new Intent(this, CellService.class);
         // if you want to pass data to the service
         i.putExtra("key", "some value");
         startService(i);
     }
 
-    public void stopService(View v) {
+    public void stopCellService() {
         Intent i = new Intent(this, CellService.class);
         stopService(i);
         // alternative: stopSelf();
-    }
-
-    public void addData(View v) {
-        DatabaseHelper myDb = DatabaseHelper.getInstance(this);
-        //public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc, Integer mcc, Double netlat,
-       // Double netlon, Double netacc, Double gpslat, Double gpslon, Double gpsacc)
-        //myDb.insertData(System.currentTimeMillis() / 1000, "started",null,null,null,null,null,null,null,null,null,null,null);
-        rebuildDataTable();
     }
 }
