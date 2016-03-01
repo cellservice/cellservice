@@ -90,7 +90,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     }
 
     public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc, Integer mcc, Double netlat,
-                              Double netlon, Double netacc, Double gpslat, Double gpslon, Double gpsacc, Integer isPostProc) {
+                              Double netlon, Float netacc, Double gpslat, Double gpslon, Float gpsacc, Integer isPostProc) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_TIMESTAMP.first, timestamp);

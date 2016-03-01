@@ -247,8 +247,8 @@ public class MobileNetworkHelper extends ContextWrapper {
         Location locationGPS;
         int isPostProcessflag=0;
         boolean result=false;
-        double NetLat =0, NetLong =0,Netacc=0;
-        double GPSLat =0, GPSLong =0,GPSacc=0;
+        Double NetLat =null, NetLong =null; Float Netacc=null;
+        Double GPSLat =null, GPSLong =null; Float GPSacc=null;
         locationNet= locationChecker.getlocationNETWORK();
         locationGPS = locationChecker.getlocationGPS();
         Log.d(TAG, "Location from GPS when "+type +" "+ locationGPS);
@@ -256,9 +256,9 @@ public class MobileNetworkHelper extends ContextWrapper {
 
         if (locationGPS==null) {
             isPostProcessflag++;
-            GPSLat = Double.MAX_VALUE;
-            GPSLong = Double.MAX_VALUE;
-            GPSacc = Double.MAX_VALUE;
+            //GPSLat = null;//Double.MAX_VALUE;
+            //GPSLong = null;//Double.MAX_VALUE;
+            //GPSacc = null;//Double.MAX_VALUE;
         }
         else{
             GPSLat=locationGPS.getLatitude();
@@ -267,9 +267,9 @@ public class MobileNetworkHelper extends ContextWrapper {
         }
         if (locationNet==null) {
             isPostProcessflag++;
-            NetLat = Double.MAX_VALUE;
-            NetLong = Double.MAX_VALUE;
-            Netacc = Double.MAX_VALUE;
+            //NetLat = Double.MAX_VALUE;
+            //NetLong = Double.MAX_VALUE;
+            //Netacc = Double.MAX_VALUE;
         }
         else{
             NetLat=locationNet.getLatitude();
