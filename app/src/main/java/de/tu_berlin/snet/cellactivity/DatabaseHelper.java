@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Pair;
 
 
-public class DatabaseHelper extends SQLiteOpenHelper{
+public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Declaring Database, Table and Column names
     private static final String DATABASE_NAME = "CellEvents.db";
@@ -61,26 +61,26 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public void onCreate(SQLiteDatabase db) {
         // create the table
         db.execSQL("CREATE TABLE " + TABLE_NAME + " (" +
-                COL_ID.first + " " + COL_ID.second + ", " +
-                COL_TIMESTAMP.first + " " + COL_TIMESTAMP.second + ", " +
-                COL_EVENT.first + " " + COL_EVENT.second + ", " +
-                COL_CELLID.first + " " + COL_CELLID.second + ", " +
-                COL_LAC.first + " " + COL_LAC.second + ", " +
-                COL_MNC.first + " " + COL_MNC.second + ", " +
-                COL_MCC.first + " " + COL_MCC.second + ", " +
-                COL_MTYPE.first + " " + COL_MTYPE.second + ", " +
-                COL_DATA_COUNT.first + " " + COL_DATA_COUNT.second + ", " +
-                COL_NETWORK_LAT.first + " " + COL_NETWORK_LAT.second + ", " +
-                COL_NETWORK_LON.first + " " + COL_NETWORK_LON.second + ", " +
-                COL_NETWORK_ACC.first + " " + COL_NETWORK_ACC.second + ", " +
-                COL_WIFI_LAT.first + " " + COL_WIFI_LAT.second + ", " +
-                COL_WIFI_LON.first + " " + COL_WIFI_LON.second + ", " +
-                COL_WIFI_ACC.first + " " + COL_WIFI_ACC.second + ", " +
-                COL_GPS_LAT.first + " " + COL_GPS_LAT.second + ", " +
-                COL_GPS_LON.first + " " + COL_GPS_LON.second + ", " +
-                COL_GPS_ACC.first + " " + COL_GPS_ACC.second + ","+
-                COL_POST_PROCESS.first + " " + COL_POST_PROCESS.second + ");"
-                );
+                        COL_ID.first + " " + COL_ID.second + ", " +
+                        COL_TIMESTAMP.first + " " + COL_TIMESTAMP.second + ", " +
+                        COL_EVENT.first + " " + COL_EVENT.second + ", " +
+                        COL_CELLID.first + " " + COL_CELLID.second + ", " +
+                        COL_LAC.first + " " + COL_LAC.second + ", " +
+                        COL_MNC.first + " " + COL_MNC.second + ", " +
+                        COL_MCC.first + " " + COL_MCC.second + ", " +
+                        COL_MTYPE.first + " " + COL_MTYPE.second + ", " +
+                        COL_DATA_COUNT.first + " " + COL_DATA_COUNT.second + ", " +
+                        COL_NETWORK_LAT.first + " " + COL_NETWORK_LAT.second + ", " +
+                        COL_NETWORK_LON.first + " " + COL_NETWORK_LON.second + ", " +
+                        COL_NETWORK_ACC.first + " " + COL_NETWORK_ACC.second + ", " +
+                        COL_WIFI_LAT.first + " " + COL_WIFI_LAT.second + ", " +
+                        COL_WIFI_LON.first + " " + COL_WIFI_LON.second + ", " +
+                        COL_WIFI_ACC.first + " " + COL_WIFI_ACC.second + ", " +
+                        COL_GPS_LAT.first + " " + COL_GPS_LAT.second + ", " +
+                        COL_GPS_LON.first + " " + COL_GPS_LON.second + ", " +
+                        COL_GPS_ACC.first + " " + COL_GPS_ACC.second + "," +
+                        COL_POST_PROCESS.first + " " + COL_POST_PROCESS.second + ");"
+        );
     }
 
     @Override
@@ -89,8 +89,10 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc, Integer mcc, Double netlat,
-                              Double netlon, Float netacc, Double gpslat, Double gpslon, Float gpsacc, Integer isPostProc) {
+    public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc,
+                              Integer mcc, String mobileNetworkType, Integer byteCount,
+                              Double netlat, Double netlon, Float netacc, Double gpslat,
+                              Double gpslon, Float gpsacc, Integer isPostProc) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_TIMESTAMP.first, timestamp);
@@ -99,6 +101,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         contentValues.put(COL_LAC.first, lac);
         contentValues.put(COL_MNC.first, mnc);
         contentValues.put(COL_MCC.first, mcc);
+        contentValues.put(COL_MTYPE.first, mobileNetworkType);
+        contentValues.put(COL_DATA_COUNT.first, byteCount);
         contentValues.put(COL_NETWORK_LAT.first, netlat);
         contentValues.put(COL_NETWORK_LON.first, netlon);
         contentValues.put(COL_NETWORK_ACC.first, netacc);
@@ -106,7 +110,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         contentValues.put(COL_GPS_LON.first, gpslon);
         contentValues.put(COL_GPS_ACC.first, gpsacc);
         contentValues.put(COL_POST_PROCESS.first, isPostProc);
-                // returns -1 if it is not inserted
+        // returns -1 if it is not inserted
         long result = db.insert(TABLE_NAME, null, contentValues);
         return (result != -1);
     }
@@ -117,7 +121,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         String[][] cellEventArray = new String[res.getCount()][18];
 
         int i = 0;
-        while(res.moveToNext()) {
+        while (res.moveToNext()) {
             cellEventArray[i][0] = res.getString(res.getColumnIndex(COL_ID.first));
             cellEventArray[i][1] = res.getString(res.getColumnIndex(COL_TIMESTAMP.first));
             cellEventArray[i][2] = res.getString(res.getColumnIndex(COL_EVENT.first));
@@ -148,7 +152,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         String[][] cellEventArray = new String[res.getCount()][18];
 
         int i = 0;
-        while(res.moveToNext()) {
+        while (res.moveToNext()) {
             cellEventArray[i][0] = res.getString(res.getColumnIndex(COL_ID.first));
             cellEventArray[i][1] = res.getString(res.getColumnIndex(COL_TIMESTAMP.first));
             cellEventArray[i][2] = res.getString(res.getColumnIndex(COL_EVENT.first));
@@ -179,7 +183,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         String[] dates = new String[3];
 
         int i = 0;
-        while(res.moveToNext()) {
+        while (res.moveToNext()) {
             dates[i] = res.getString(0);
             i++;
         }

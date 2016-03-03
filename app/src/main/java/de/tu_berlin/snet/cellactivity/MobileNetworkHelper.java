@@ -22,7 +22,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     private static final String TAG = "T-Lab TRACKER";
     private CellInfo mLastCellInfo = null;
 
-    private int mLastConnectionType = -1;
+    private String mLastConnectionType = "UNKNOWN";
 
     private CellInfo getLastCellInfo() {
         return mLastCellInfo;
@@ -36,7 +36,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     TelephonyManager telephonyManager;
     PhoneStateListener phoneStateListener;
     TrafficObserver trafficObserver;
-    long cellBytes = 0;
+    int cellBytes = 0;
     private TrafficStateListener trafficStateListener;
     private int mPreviousCallState;
     private CallStateListener callStateListener;
@@ -106,7 +106,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             int mcc = Integer.parseInt(networkOperator.substring(0, 3));
             int mnc = Integer.parseInt(networkOperator.substring(3));
 
-            mLastCellInfo = new CellInfo(cellID, lac, mnc, mcc, getLastConnectionType());
+            mLastCellInfo = new CellInfo(cellID, lac, mnc, mcc, tm.getNetworkType());
         }
         catch (Exception e){
             mLastCellInfo = new CellInfo();
@@ -114,11 +114,11 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
 
-    public int getLastConnectionType() {
+    public String getLastConnectionType() {
         return mLastConnectionType;
     }
 
-    public void setLastConnectionType(int lastConnectionType) {
+    public void setLastConnectionType(String lastConnectionType) {
         this.mLastConnectionType = lastConnectionType;
     }
 
@@ -137,7 +137,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
 
                 if(cellBytes > 0) {
-                   makeEntry(getCellInfo() + " kbytes: " + cellBytes / 1000);
+                   makeDataEntry("data", cellBytes);
                 }
 
                 // reset
@@ -167,7 +167,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                         break;
                 }*/
 
-                setLastConnectionType(networkType);
+                //setLastConnectionType(networkType);
             }
         };
     }
@@ -188,18 +188,15 @@ public class MobileNetworkHelper extends ContextWrapper {
                 case TelephonyManager.CALL_STATE_IDLE:
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "idle --> off hook = new outgoing call");
-                           // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " out: " + incomingNumber);
-                        makeEntry(getCellInfo() + " out: " + incomingNumber);
+                        makeCallOrTextEntry("out: " + incomingNumber);
                     } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
                         Log.e("callState", "idle --> ringing = new incoming call");
-                        //myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " inc: " + incomingNumber);
-                        makeEntry(getCellInfo() + " inc: " + incomingNumber);
+                        makeCallOrTextEntry("inc: " + incomingNumber);
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
                     if (newState == TelephonyManager.CALL_STATE_IDLE) {
                         Log.e("callState", "off hook --> idle  = disconnected");
-
                     } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
                         Log.e("callState", "off hook --> ringing = another call waiting");
                     }
@@ -208,8 +205,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 case TelephonyManager.CALL_STATE_RINGING:
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "ringing --> off hook = received");
-                         makeEntry(getCellInfo() + " recv: "+incomingNumber);
-                        //myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " recv: "+incomingNumber);
+                         makeCallOrTextEntry("recv: "+incomingNumber);
                     } else if (newState == TelephonyManager.CALL_STATE_IDLE) {
                         Log.e("callState", "ringing --> idle = missed call");
                     }
@@ -226,39 +222,39 @@ public class MobileNetworkHelper extends ContextWrapper {
             if(action.equals("android.provider.Telephony.SMS_RECEIVED")){
                 //action for sms received
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Received");
-               // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS recv");
-                makeEntry(getCellInfo() + " SMS recv");
+                makeCallOrTextEntry("SMS recv");
             }
             /* THIS DOESN'T WORK 
             * http://stackoverflow.com/questions/990558/android-broadcast-receiver-for-sent-sms-messages
             * */
             else if(action.equals("android.provider.Telephony.SMS_SENT")){
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Sent");
-               // myDb.insertData(System.currentTimeMillis() / 1000, getCellInfo() + " SMS sent");
-                makeEntry(getCellInfo() + " SMS sent");
+                makeCallOrTextEntry("SMS sent");
             }
         }
         // constructor
         public SmsReceiver(){}
     }
-    public boolean makeEntry(String type){
+
+    public void makeCallOrTextEntry(String type) {
+        makeEntry(type, 0);
+    }
+    public void makeDataEntry(String type, int byteCount) {
+        makeEntry(type, byteCount);
+    }
+
+    public boolean makeEntry(String type, int byteCount){
         Log.d(TAG, "from MakeEntry method");
-        Location locationNet;
-        Location locationGPS;
         int isPostProcessflag=0;
-        boolean result=false;
         Double NetLat =null, NetLong =null; Float Netacc=null;
         Double GPSLat =null, GPSLong =null; Float GPSacc=null;
-        locationNet= locationChecker.getlocationNETWORK();
-        locationGPS = locationChecker.getlocationGPS();
+        Location locationNet= locationChecker.getlocationNETWORK();
+        Location locationGPS = locationChecker.getlocationGPS();
         Log.d(TAG, "Location from GPS when "+type +" "+ locationGPS);
         Log.d(TAG, "Location from NETWORK when  " + type + " " + locationNet);
 
         if (locationGPS==null) {
             isPostProcessflag++;
-            //GPSLat = null;//Double.MAX_VALUE;
-            //GPSLong = null;//Double.MAX_VALUE;
-            //GPSacc = null;//Double.MAX_VALUE;
         }
         else{
             GPSLat=locationGPS.getLatitude();
@@ -267,22 +263,21 @@ public class MobileNetworkHelper extends ContextWrapper {
         }
         if (locationNet==null) {
             isPostProcessflag++;
-            //NetLat = Double.MAX_VALUE;
-            //NetLong = Double.MAX_VALUE;
-            //Netacc = Double.MAX_VALUE;
         }
         else{
             NetLat=locationNet.getLatitude();
             NetLong=locationNet.getLongitude();
             Netacc = locationNet.getAccuracy();
         }
-        result = myDb.insertData(
-                System.currentTimeMillis() / 1000,//utc,
+        boolean result = myDb.insertData(
+                System.currentTimeMillis() / 1000, //utc timestamp in seconds,
                 type,
-                Integer.parseInt(getCellInfo().getCellId()),//1,
-                Integer.parseInt(getCellInfo().getLac()),
-                Integer.parseInt(getCellInfo().getMnc()),
-                Integer.parseInt(getCellInfo().getMcc()),
+                getCellInfo().getCellId(),
+                getCellInfo().getLac(),
+                getCellInfo().getMnc(),
+                getCellInfo().getMcc(),
+                getCellInfo().getConnectionType(),
+                byteCount,
                 NetLat,//locationNet.getLatitude(),
                 NetLong,//locationNet.getLongitude(),
                 Netacc,
@@ -292,7 +287,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 isPostProcessflag
         );
 
-        if (result==true)
+        if (result == true)
             Log.d(TAG,"inserted data to DB");
         else
             Log.d(TAG,"Failed to insert data");

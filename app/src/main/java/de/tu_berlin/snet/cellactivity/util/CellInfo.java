@@ -5,66 +5,36 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class CellInfo {
-    private String mCellId, mLac, mMnc, mMcc, mConnectionType;
+    private int mCellId, mLac, mMnc, mMcc;
+    private String mConnectionType;
 
-    public CellInfo(String cellid, String lac, String mnc, String mcc, String connectionType) {
+    public CellInfo(int cellid, int lac, int mnc, int mcc, int connectionType) {
         mCellId = cellid;
         mLac = lac;
         mMnc = mnc;
         mMcc = mcc;
-        mConnectionType = connectionType;
+        mConnectionType = resolveNetworkType(connectionType);
     }
 
-    public CellInfo(int cellid, int lac, int mnc, int mcc, int connectionType) {
-        mCellId = Integer.toString(cellid);
-        mLac = Integer.toString(lac);
-        mMnc = Integer.toString(mnc);
-        mMcc = Integer.toString(mcc);
-
-        switch (connectionType) {
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-                mConnectionType = "CDMA";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_CDMA");
-                break;
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-                mConnectionType = "EDGE";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_EDGE");
-                break;
-            case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                mConnectionType = "EVDO_0";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_EVDO_0");
-                break;
-            case TelephonyManager.NETWORK_TYPE_GPRS:
-                mConnectionType = "GPRS";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_GPRS");
-                break;
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-                mConnectionType = "HSDPA";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_HSDPA");
-                break;
-            case TelephonyManager.NETWORK_TYPE_HSPA:
-                mConnectionType = "HSPA";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_HSPA");
-                break;
-            case TelephonyManager.NETWORK_TYPE_IDEN:
-                mConnectionType = "IDEN";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_IDEN");
-                break;
-            case TelephonyManager.NETWORK_TYPE_LTE:
-                mConnectionType = "LTE";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_LTE");
-                break;
-            case TelephonyManager.NETWORK_TYPE_UMTS:
-                mConnectionType = "UMTS";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_UMTS");
-                break;
-            case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-                mConnectionType = "UNKNOWN";
-                //Log.e("data", "onDataConnectionStateChanged: NETWORK_TYPE_UNKNOWN");
-                break;
-            default:
-                mConnectionType = "UNDEFINED";
-                break;
+    private String resolveNetworkType(int networkType) {
+        switch (networkType) {
+            case TelephonyManager.NETWORK_TYPE_1xRTT: return "1xRTT";
+            case TelephonyManager.NETWORK_TYPE_CDMA: return "CDMA";
+            case TelephonyManager.NETWORK_TYPE_EDGE: return "EDGE";
+            case TelephonyManager.NETWORK_TYPE_EHRPD: return "eHRPD";
+            case TelephonyManager.NETWORK_TYPE_EVDO_0: return "EVDO rev. 0";
+            case TelephonyManager.NETWORK_TYPE_EVDO_A: return "EVDO rev. A";
+            case TelephonyManager.NETWORK_TYPE_EVDO_B: return "EVDO rev. B";
+            case TelephonyManager.NETWORK_TYPE_GPRS: return "GPRS";
+            case TelephonyManager.NETWORK_TYPE_HSDPA: return "HSDPA";
+            case TelephonyManager.NETWORK_TYPE_HSPA: return "HSPA";
+            case TelephonyManager.NETWORK_TYPE_HSPAP: return "HSPA+";
+            case TelephonyManager.NETWORK_TYPE_HSUPA: return "HSUPA";
+            case TelephonyManager.NETWORK_TYPE_IDEN: return "iDen";
+            case TelephonyManager.NETWORK_TYPE_LTE: return "LTE";
+            case TelephonyManager.NETWORK_TYPE_UMTS: return "UMTS";
+            case TelephonyManager.NETWORK_TYPE_UNKNOWN: return "Unknown";
+            default: return "Unknown new type";
         }
     }
 
@@ -72,19 +42,23 @@ public class CellInfo {
      * Error Constructor
      */
     public CellInfo() {
-        mCellId = "-1";
-        mLac = "-1";
-        mMnc = "-1";
-        mMcc = "-1";
+        mCellId = -1;
+        mLac = -1;
+        mMnc = -1;
+        mMcc = -1;
     }
 
-    public String getCellId() { return mCellId; }
+    public int getCellId() { return mCellId; }
 
-    public String getLac() { return mLac; }
+    public int getLac() { return mLac; }
 
-    public String getMnc() { return mMnc; }
+    public int getMnc() { return mMnc; }
 
-    public String getMcc() { return mMcc; }
+    public int getMcc() { return mMcc; }
+
+    public String getConnectionType() {
+        return mConnectionType;
+    }
 
     @Override
     public boolean equals(Object other) {
@@ -94,13 +68,9 @@ public class CellInfo {
 
         CellInfo that = (CellInfo) other;
 
-        if(that.getCellId().equals(this.getCellId()) && that.getLac().equals(this.getLac())) {
+        if(that.getCellId() == this.getCellId() && that.getLac() == this.getLac()) {
             return true;
         } else { return false; }
-    }
-
-    public String getmConnectionType() {
-        return mConnectionType;
     }
 
     @Override
