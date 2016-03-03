@@ -237,13 +237,13 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
     public void makeCallOrTextEntry(String type) {
-        makeEntry(type, 0);
+        makeEntry(type, null);
     }
-    public void makeDataEntry(String type, int byteCount) {
+    public void makeDataEntry(String type, Integer byteCount) {
         makeEntry(type, byteCount);
     }
 
-    public boolean makeEntry(String type, int byteCount){
+    public boolean makeEntry(String type, Integer byteCount){
         Log.d(TAG, "from MakeEntry method");
         int isPostProcessflag=0;
         Double NetLat =null, NetLong =null; Float Netacc=null;

@@ -63,7 +63,7 @@ public class TimeLineFragment extends Fragment {
             View eventTimeBar = (View) eventView.findViewById(R.id.eventTimeBar);
 
             // extract color from string that contains cellid + lac and set it as the background
-            String cellidLAC = databaseEntries[i][2].split("kbytes")[0];
+            String cellidLAC = databaseEntries[i][3] + "/" + databaseEntries[i][4];
             String opacity = "#FF";
             String hexColor = String.format(
                     opacity + "%06X", (0xFFFFFF & cellidLAC.hashCode()));
@@ -72,7 +72,15 @@ public class TimeLineFragment extends Fragment {
             // Display the date as only hours and minutes
             DateFormat df = new SimpleDateFormat("HH:mm");
             eventTime.setText(df.format(new java.util.Date(Long.parseLong(databaseEntries[i][1]) * 1000)));
-            eventText.setText(databaseEntries[i][2]);
+
+            String eventTextBuilder = databaseEntries[i][2] + " ( "+databaseEntries[i][3] + " / " +
+                                      databaseEntries[i][4] + " / " + databaseEntries[i][7] + ")";
+
+            if(databaseEntries[i][8] != null) {
+                eventTextBuilder += " " + (Integer.parseInt(databaseEntries[i][8])/1000f) + " Kb";
+            }
+
+            eventText.setText(eventTextBuilder);
 
             // Set the length of the time intervals with a sigmoid based function
             if (i != 0) {
