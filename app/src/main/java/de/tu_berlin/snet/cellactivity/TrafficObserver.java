@@ -100,7 +100,7 @@ public class TrafficObserver {
                     Log.d("Traffic", "Switching ON the mobile interface");
                }
                //for Tx
-                if ( bytesTx!=0 && getMobileTxBytes()!=0 ){
+                if ( bytesTx>0 && getMobileTxBytes()>0 ){
                     Log.d("Traffic", "Bytes Transmitted: " + (bytesTx-getMobileTxBytes())  + "\tNormal");
                    if ((bytesTx-getMobileTxBytes())>0)
                     for (TrafficListener tl : listeners)
