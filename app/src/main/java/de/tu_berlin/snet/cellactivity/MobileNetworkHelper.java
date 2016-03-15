@@ -36,7 +36,8 @@ public class MobileNetworkHelper extends ContextWrapper {
     TelephonyManager telephonyManager;
     PhoneStateListener phoneStateListener;
     TrafficObserver trafficObserver;
-    int cellBytes = 0;
+    int cellRxBytes = 0;
+    int cellTxBytes = 0;
     private TrafficStateListener trafficStateListener;
     private int mPreviousCallState;
     private CallStateListener callStateListener;
@@ -134,14 +135,15 @@ public class MobileNetworkHelper extends ContextWrapper {
             @SuppressLint("NewApi")
             public void onCellLocationChanged(CellLocation location)
             {
-                Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellBytes);
+                Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellRxBytes+cellTxBytes);
 
-                if(cellBytes > 0) {
-                   makeDataEntry("data", cellBytes);
+                if(cellRxBytes+cellTxBytes > 0) {
+                   makeDataEntry("data", cellRxBytes,cellTxBytes);
                 }
 
                 // reset
-                cellBytes = 0;
+                cellRxBytes = 0;
+                cellTxBytes = 0;
                 updateCellInfo();
             }
 
@@ -174,9 +176,13 @@ public class MobileNetworkHelper extends ContextWrapper {
 
     class TrafficStateListener implements TrafficListener {
         @Override
-        public void bytesTransferred(long bytes) {
-            cellBytes += bytes;
-            System.out.println(bytes + " bytes exchanged. Total cellbytes : "+cellBytes);
+        public void bytesRxTransferred(long bytes) {
+            cellRxBytes += bytes;
+            System.out.println(bytes + " bytes received, Total cellRxbytes : "+cellRxBytes);
+        }
+        public void bytesTxTransferred(long bytes) {
+            cellTxBytes += bytes;
+            System.out.println(bytes + " bytes transmitted. Total cellTxBytes : "+cellTxBytes);
         }
     }
 
@@ -237,13 +243,13 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
     public void makeCallOrTextEntry(String type) {
-        makeEntry(type, null);
+        makeEntry(type, null, null);
     }
-    public void makeDataEntry(String type, Integer byteCount) {
-        makeEntry(type, byteCount);
+    public void makeDataEntry(String type, Integer byteRxCount, Integer byteTxCount) {
+        makeEntry(type, byteRxCount,byteTxCount);
     }
 
-    public boolean makeEntry(String type, Integer byteCount){
+    public boolean makeEntry(String type, Integer byteRxCount, Integer byteTxCount){
         Log.d(TAG, "from MakeEntry method");
         int isPostProcessflag=0;
         Double NetLat =null, NetLong =null; Float Netacc=null;
@@ -277,7 +283,8 @@ public class MobileNetworkHelper extends ContextWrapper {
                 getCellInfo().getMnc(),
                 getCellInfo().getMcc(),
                 getCellInfo().getConnectionType(),
-                byteCount,
+                byteRxCount,
+                byteTxCount,
                 NetLat,//locationNet.getLatitude(),
                 NetLong,//locationNet.getLongitude(),
                 Netacc,
