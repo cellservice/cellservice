@@ -23,7 +23,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final Pair<String, String> COL_MNC = new Pair("MNC", "INTEGER");
     private static final Pair<String, String> COL_MCC = new Pair("MCC", "INTEGER");
     private static final Pair<String, String> COL_MTYPE = new Pair("MTYPE", "TEXT");
-    private static final Pair<String, String> COL_DATA_COUNT = new Pair("DATA_COUNT", "INTEGER");
+    private static final Pair<String, String> COL_DATA_COUNT_RX = new Pair("DATA_COUNT_RX", "INTEGER");
+    private static final Pair<String, String> COL_DATA_COUNT_TX = new Pair("DATA_COUNT_TX", "INTEGER");
     private static final Pair<String, String> COL_NETWORK_LAT = new Pair("NETWORK_LAT", "REAL");
     private static final Pair<String, String> COL_NETWORK_LON = new Pair("NETWORK_LON", "REAL");
     private static final Pair<String, String> COL_NETWORK_ACC = new Pair("NETWORK_ACC", "REAL");
@@ -69,7 +70,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         COL_MNC.first + " " + COL_MNC.second + ", " +
                         COL_MCC.first + " " + COL_MCC.second + ", " +
                         COL_MTYPE.first + " " + COL_MTYPE.second + ", " +
-                        COL_DATA_COUNT.first + " " + COL_DATA_COUNT.second + ", " +
+                        COL_DATA_COUNT_RX.first + " " + COL_DATA_COUNT_RX.second + ", " +
+                        COL_DATA_COUNT_TX.first + " " + COL_DATA_COUNT_TX.second + ", " +
                         COL_NETWORK_LAT.first + " " + COL_NETWORK_LAT.second + ", " +
                         COL_NETWORK_LON.first + " " + COL_NETWORK_LON.second + ", " +
                         COL_NETWORK_ACC.first + " " + COL_NETWORK_ACC.second + ", " +
@@ -90,7 +92,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public boolean insertData(Long timestamp, String event, Integer cid, Integer lac, Integer mnc,
-                              Integer mcc, String mobileNetworkType, Integer byteCount,
+                              Integer mcc, String mobileNetworkType, Integer byteRxCount,Integer byteTxCount,
                               Double netlat, Double netlon, Float netacc, Double gpslat,
                               Double gpslon, Float gpsacc, Integer isPostProc) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -102,7 +104,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         contentValues.put(COL_MNC.first, mnc);
         contentValues.put(COL_MCC.first, mcc);
         contentValues.put(COL_MTYPE.first, mobileNetworkType);
-        contentValues.put(COL_DATA_COUNT.first, byteCount);
+        contentValues.put(COL_DATA_COUNT_RX.first, byteRxCount);
+        contentValues.put(COL_DATA_COUNT_TX.first, byteTxCount);
         contentValues.put(COL_NETWORK_LAT.first, netlat);
         contentValues.put(COL_NETWORK_LON.first, netlon);
         contentValues.put(COL_NETWORK_ACC.first, netacc);
@@ -118,7 +121,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String[][] getAllDataAsArray() {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY id", null);
-        String[][] cellEventArray = new String[res.getCount()][18];
+        String[][] cellEventArray = new String[res.getCount()][19];
 
         int i = 0;
         while (res.moveToNext()) {
@@ -130,16 +133,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cellEventArray[i][5] = res.getString(res.getColumnIndex(COL_MNC.first));
             cellEventArray[i][6] = res.getString(res.getColumnIndex(COL_MCC.first));
             cellEventArray[i][7] = res.getString(res.getColumnIndex(COL_MTYPE.first));
-            cellEventArray[i][8] = res.getString(res.getColumnIndex(COL_DATA_COUNT.first));
-            cellEventArray[i][9] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
-            cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
-            cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
-            cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
-            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
-            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
-            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
-            cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
-            cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
+            cellEventArray[i][8] = res.getString(res.getColumnIndex(COL_DATA_COUNT_RX.first));
+            cellEventArray[i][9] = res.getString(res.getColumnIndex(COL_DATA_COUNT_TX.first));
+            cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
+            cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
+            cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
+            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
+            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
+            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
+            cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
+            cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
+            cellEventArray[i][18] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
             i++;
         }
 
@@ -149,7 +153,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String[][] getAllDataAsArrayOnDate(String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE date(TIMESTAMP, 'unixepoch') = '" + date + "' ORDER BY id", null);
-        String[][] cellEventArray = new String[res.getCount()][18];
+        String[][] cellEventArray = new String[res.getCount()][19];
 
         int i = 0;
         while (res.moveToNext()) {
@@ -161,16 +165,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cellEventArray[i][5] = res.getString(res.getColumnIndex(COL_MNC.first));
             cellEventArray[i][6] = res.getString(res.getColumnIndex(COL_MCC.first));
             cellEventArray[i][7] = res.getString(res.getColumnIndex(COL_MTYPE.first));
-            cellEventArray[i][8] = res.getString(res.getColumnIndex(COL_DATA_COUNT.first));
-            cellEventArray[i][9] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
-            cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
-            cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
-            cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
-            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
-            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
-            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
-            cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
-            cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
+            cellEventArray[i][8] = res.getString(res.getColumnIndex(COL_DATA_COUNT_RX.first));
+            cellEventArray[i][9] = res.getString(res.getColumnIndex(COL_DATA_COUNT_TX.first));
+            cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
+            cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
+            cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
+            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
+            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
+            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
+            cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
+            cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
+            cellEventArray[i][18] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
             i++;
         }
 
