@@ -152,7 +152,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public String[][] getAllDataAsArrayOnDate(String date) {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE date(TIMESTAMP, 'unixepoch') = '" + date + "' ORDER BY id", null);
+        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE date(TIMESTAMP, 'unixepoch', 'localtime') = '" + date + "' ORDER BY id", null);
         String[][] cellEventArray = new String[res.getCount()][19];
 
         int i = 0;
