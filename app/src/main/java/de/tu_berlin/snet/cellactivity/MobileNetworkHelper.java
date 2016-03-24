@@ -100,7 +100,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             /* Why I use this Bitmask:
              * https://stackoverflow.com/questions/9808396/android-cellid-not-available-on-all-carriers#12969638
              */
-            int cellID = location.getCid() & 0xffff;
+            int cellID = location.getCid();// & 0xffff;
             int lac = location.getLac();
 
             String networkOperator = tm.getNetworkOperator();
