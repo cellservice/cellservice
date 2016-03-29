@@ -20,17 +20,9 @@ import de.tu_berlin.snet.cellactivity.util.CellInfo;
 public class MobileNetworkHelper extends ContextWrapper {
 
     private static final String TAG = "T-Lab TRACKER";
-    private CellInfo mLastCellInfo = null;
+    private CellInfo mLastCellInfo = new CellInfo();
 
     private String mLastConnectionType = "UNKNOWN";
-
-    private CellInfo getLastCellInfo() {
-        return mLastCellInfo;
-    }
-
-    private void setLastCellInfo(CellInfo mLastCellInfo) {
-        this.mLastCellInfo = mLastCellInfo;
-    }
 
     DatabaseHelper myDb;
     TelephonyManager telephonyManager;
@@ -92,7 +84,24 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
 
-    private void updateCellInfo() {
+    private void checkForLocationUpdate(CellInfo newCellInfo) {
+        if (getLastCellInfo().getLac() != -1 &&
+            newCellInfo.getLac() != -1 &&
+            getLastCellInfo().getLac() != newCellInfo.getLac()) {
+            Log.e("LOCATION UPDATE", "WILL NOW MAKE DATA ENTRY");
+            makeCallOrTextEntry("LU");
+        }
+    }
+
+    private void setLastCellInfo(CellInfo mLastCellInfo) {
+        this.mLastCellInfo = mLastCellInfo;
+    }
+
+    public CellInfo getLastCellInfo() {
+        return mLastCellInfo;
+    }
+
+    private CellInfo getCurrentCellInfo() {
         try {
             TelephonyManager tm =(TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             GsmCellLocation location = (GsmCellLocation) tm.getCellLocation();
@@ -107,10 +116,10 @@ public class MobileNetworkHelper extends ContextWrapper {
             int mcc = Integer.parseInt(networkOperator.substring(0, 3));
             int mnc = Integer.parseInt(networkOperator.substring(3));
 
-            mLastCellInfo = new CellInfo(cellID, lac, mnc, mcc, tm.getNetworkType());
+            return new CellInfo(cellID, lac, mnc, mcc, tm.getNetworkType());
         }
         catch (Exception e){
-            mLastCellInfo = new CellInfo();
+            return new CellInfo();
         }
     }
 
@@ -123,10 +132,6 @@ public class MobileNetworkHelper extends ContextWrapper {
         this.mLastConnectionType = lastConnectionType;
     }
 
-    public CellInfo getCellInfo() {
-        return mLastCellInfo;
-    }
-
     public PhoneStateListener setupPhoneStateListener()
     {
         return new PhoneStateListener() {
@@ -135,16 +140,22 @@ public class MobileNetworkHelper extends ContextWrapper {
             @SuppressLint("NewApi")
             public void onCellLocationChanged(CellLocation location)
             {
-                Log.e("cellp", "last cellid: " + getCellInfo() + " total bytes: " + cellRxBytes+cellTxBytes);
+                CellInfo newCellInfo = getCurrentCellInfo();
+
+                Log.e("cellp", "last cellid: " + getLastCellInfo() + " total bytes: " + cellRxBytes + cellTxBytes);
 
                 if(cellRxBytes+cellTxBytes > 0) {
                    makeDataEntry("data", cellRxBytes,cellTxBytes);
                 }
 
-                // reset
+                // reset traffic stats
                 cellRxBytes = 0;
                 cellTxBytes = 0;
-                updateCellInfo();
+
+                // check for Location Update and create data point if it happened
+                checkForLocationUpdate(newCellInfo);
+
+                setLastCellInfo(getCurrentCellInfo());
             }
 
             /** invoked when data connection state changes (only way to get the network type) */
@@ -278,11 +289,11 @@ public class MobileNetworkHelper extends ContextWrapper {
         boolean result = myDb.insertData(
                 System.currentTimeMillis() / 1000, //utc timestamp in seconds,
                 type,
-                getCellInfo().getCellId(),
-                getCellInfo().getLac(),
-                getCellInfo().getMnc(),
-                getCellInfo().getMcc(),
-                getCellInfo().getConnectionType(),
+                getLastCellInfo().getCellId(),
+                getLastCellInfo().getLac(),
+                getLastCellInfo().getMnc(),
+                getLastCellInfo().getMcc(),
+                getLastCellInfo().getConnectionType(),
                 byteRxCount,
                 byteTxCount,
                 NetLat,//locationNet.getLatitude(),
