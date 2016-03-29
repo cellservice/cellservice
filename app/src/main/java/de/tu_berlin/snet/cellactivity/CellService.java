@@ -12,14 +12,19 @@ import android.widget.Toast;
 public class CellService extends Service {
 
     private static final String TAG = "T-LAB-LocationChecker";
+    private static Service instance;
     MobileNetworkHelper mobileNetworkHelper;
 
     public CellService() {
     }
 
+    // Allows others to retrieve a reference to this service, to get the context
+    public static Service get() { return instance; }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
         mobileNetworkHelper = new MobileNetworkHelper(this);
         Toast.makeText(this, "Service is created", Toast.LENGTH_LONG).show();
     }

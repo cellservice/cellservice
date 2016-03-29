@@ -18,23 +18,40 @@ public class CellInfo {
 
     private String resolveNetworkType(int networkType) {
         switch (networkType) {
-            case TelephonyManager.NETWORK_TYPE_1xRTT: return "1xRTT";
-            case TelephonyManager.NETWORK_TYPE_CDMA: return "CDMA";
-            case TelephonyManager.NETWORK_TYPE_EDGE: return "EDGE";
-            case TelephonyManager.NETWORK_TYPE_EHRPD: return "eHRPD";
-            case TelephonyManager.NETWORK_TYPE_EVDO_0: return "EVDO rev. 0";
-            case TelephonyManager.NETWORK_TYPE_EVDO_A: return "EVDO rev. A";
-            case TelephonyManager.NETWORK_TYPE_EVDO_B: return "EVDO rev. B";
-            case TelephonyManager.NETWORK_TYPE_GPRS: return "GPRS";
-            case TelephonyManager.NETWORK_TYPE_HSDPA: return "HSDPA";
-            case TelephonyManager.NETWORK_TYPE_HSPA: return "HSPA";
-            case TelephonyManager.NETWORK_TYPE_HSPAP: return "HSPA+";
-            case TelephonyManager.NETWORK_TYPE_HSUPA: return "HSUPA";
-            case TelephonyManager.NETWORK_TYPE_IDEN: return "iDen";
-            case TelephonyManager.NETWORK_TYPE_LTE: return "LTE";
-            case TelephonyManager.NETWORK_TYPE_UMTS: return "UMTS";
-            case TelephonyManager.NETWORK_TYPE_UNKNOWN: return "Unknown";
-            default: return "Unknown new type";
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+                return "1xRTT";
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+                return "CDMA";
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+                return "EDGE";
+            case TelephonyManager.NETWORK_TYPE_EHRPD:
+                return "eHRPD";
+            case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                return "EVDO rev. 0";
+            case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                return "EVDO rev. A";
+            case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                return "EVDO rev. B";
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+                return "GPRS";
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+                return "HSDPA";
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+                return "HSPA";
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+                return "HSPA+";
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+                return "HSUPA";
+            case TelephonyManager.NETWORK_TYPE_IDEN:
+                return "iDen";
+            case TelephonyManager.NETWORK_TYPE_LTE:
+                return "LTE";
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+                return "UMTS";
+            case TelephonyManager.NETWORK_TYPE_UNKNOWN:
+                return "Unknown";
+            default:
+                return "Unknown new type";
         }
     }
 
@@ -48,13 +65,21 @@ public class CellInfo {
         mMcc = -1;
     }
 
-    public int getCellId() { return mCellId; }
+    public int getCellId() {
+        return mCellId;
+    }
 
-    public int getLac() { return mLac; }
+    public int getLac() {
+        return mLac;
+    }
 
-    public int getMnc() { return mMnc; }
+    public int getMnc() {
+        return mMnc;
+    }
 
-    public int getMcc() { return mMcc; }
+    public int getMcc() {
+        return mMcc;
+    }
 
     public String getConnectionType() {
         return mConnectionType;
@@ -68,9 +93,10 @@ public class CellInfo {
 
         CellInfo that = (CellInfo) other;
 
-        if(that.getCellId() == this.getCellId() && that.getLac() == this.getLac()) {
-            return true;
-        } else { return false; }
+        return that.getCellId() == this.getCellId() &&
+                that.getLac() == this.getLac() &&
+                that.getMnc() == this.getMnc() &&
+                that.getMcc() == this.getMcc();
     }
 
     @Override
