@@ -2,12 +2,14 @@ package de.tu_berlin.snet.cellactivity;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.location.Location;
 import android.location.LocationManager;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -35,7 +37,6 @@ public class MobileNetworkHelper extends ContextWrapper {
     private CellInfoObserver mCellInfoObserver;
     private CellInfoStateListener mCellInfoStateListener;
 
-
     private int mPreviousCallState;
     private CallStateListener mCallStateListener;
     private SmsReceiver mSMSReceiver;
@@ -43,6 +44,11 @@ public class MobileNetworkHelper extends ContextWrapper {
     // location checker items
     private LocationManager mLocationManager = null;
     private LocationChecker mLocationChecker = null;
+
+    // outgoing sms observer items
+    private ContentResolver mContentResolver;
+    private OutgoingSMSObserver mSMSObserver;
+    private OutgoingSMSStateListener mOutgoingSMSStateListener;
 
     public MobileNetworkHelper(Context base) {
         super(base);
@@ -71,6 +77,13 @@ public class MobileNetworkHelper extends ContextWrapper {
         mLocationChecker = new LocationChecker(mLocationManager);
 
 
+        mSMSObserver = OutgoingSMSObserver.getInstance();
+        mContentResolver = this.getContentResolver();
+        mContentResolver.registerContentObserver(Uri.parse("content://sms"), true, mSMSObserver);
+        mOutgoingSMSStateListener = new OutgoingSMSStateListener();
+        mSMSObserver.addListener(mOutgoingSMSStateListener);
+
+
         mPreviousCallState = mTelephonyManager.getCallState();
         mCallStateListener = new CallStateListener();
         mTelephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
@@ -93,6 +106,9 @@ public class MobileNetworkHelper extends ContextWrapper {
 
         mTelephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_NONE);
         unregisterReceiver(mSMSReceiver);
+
+        mContentResolver.unregisterContentObserver(mSMSObserver);
+        mSMSObserver.removeListener(mOutgoingSMSStateListener);
     }
 
     public PhoneStateListener setupPhoneStateListener()
@@ -167,6 +183,13 @@ public class MobileNetworkHelper extends ContextWrapper {
                     break;
             }
             mPreviousCallState = newState;
+        }
+    }
+
+    private final class OutgoingSMSStateListener implements OutgoingSMSListener {
+        @Override
+        public void onSMSSent(String receiverAddress) {
+            makeCallOrTextEntry("SMS sent");
         }
     }
 
