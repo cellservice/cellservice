@@ -16,6 +16,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.util.Event;
 
 
 public class MobileNetworkHelper extends ContextWrapper {
@@ -122,7 +123,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 Log.e("cellp", "last cellid: " + mCellInfoObserver.getPreviousCellInfo() + " total bytes: " + mCellRxBytes + mCellTxBytes);
 
                 if(mCellRxBytes + mCellTxBytes > 0) {
-                   makeDataEntry("data", mCellRxBytes, mCellTxBytes);
+                    makeDataEntry(new Event("data", System.currentTimeMillis()), mCellRxBytes,mCellTxBytes);
                 }
 
                 // reset traffic stats
@@ -147,7 +148,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     class CellInfoStateListener implements CellInfoListener {
         @Override
         public void onLocationUpdate(CellInfo oldCellInfo, CellInfo newCellInfo) {
-            makeCallOrTextEntry("Location Update");
+            makeCallOrTextEntry(new Event("Location Update",System.currentTimeMillis()));
         }
     }
 
@@ -159,10 +160,10 @@ public class MobileNetworkHelper extends ContextWrapper {
                 case TelephonyManager.CALL_STATE_IDLE:
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "idle --> off hook = new outgoing call");
-                        makeCallOrTextEntry("out: " + incomingNumber);
+                        makeCallOrTextEntry(new Event("out: " + incomingNumber, System.currentTimeMillis()));
                     } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
                         Log.e("callState", "idle --> ringing = new incoming call");
-                        makeCallOrTextEntry("inc: " + incomingNumber);
+                        makeCallOrTextEntry(new Event("inc: " + incomingNumber, System.currentTimeMillis()));
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
@@ -176,7 +177,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 case TelephonyManager.CALL_STATE_RINGING:
                     if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
                         Log.e("callState", "ringing --> off hook = received");
-                         makeCallOrTextEntry("recv: "+incomingNumber);
+                        makeCallOrTextEntry(new Event("recv: "+incomingNumber, System.currentTimeMillis()));
                     } else if (newState == TelephonyManager.CALL_STATE_IDLE) {
                         Log.e("callState", "ringing --> idle = missed call");
                     }
@@ -189,7 +190,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     private final class OutgoingSMSStateListener implements OutgoingSMSListener {
         @Override
         public void onSMSSent(String receiverAddress) {
-            makeCallOrTextEntry("SMS sent");
+            makeCallOrTextEntry(new Event("SMS sent", System.currentTimeMillis()));
         }
     }
 
@@ -200,28 +201,28 @@ public class MobileNetworkHelper extends ContextWrapper {
             if(action.equals("android.provider.Telephony.SMS_RECEIVED")){
                 //action for sms received
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Received");
-                makeCallOrTextEntry("SMS recv");
+                makeCallOrTextEntry(new Event("SMS recv", System.currentTimeMillis()));
             }
             /* THIS DOESN'T WORK 
             * http://stackoverflow.com/questions/990558/android-broadcast-receiver-for-sent-sms-messages
             * */
             else if(action.equals("android.provider.Telephony.SMS_SENT")){
                 Log.e("SMS", "From Broadcast receiver: "+"SMS Sent");
-                makeCallOrTextEntry("SMS sent");
+                makeCallOrTextEntry(new Event("SMS sent", System.currentTimeMillis()));
             }
         }
         // constructor
         public SmsReceiver(){}
     }
 
-    public void makeCallOrTextEntry(String type) {
-        makeEntry(type, null, null);
+    public void makeCallOrTextEntry(Event event) {
+        makeEntry(event, null, null);
     }
-    public void makeDataEntry(String type, Integer byteRxCount, Integer byteTxCount) {
-        makeEntry(type, byteRxCount,byteTxCount);
+    public void makeDataEntry(Event event, Integer byteRxCount, Integer byteTxCount) {
+        makeEntry(event, byteRxCount,byteTxCount);
     }
 
-    public boolean makeEntry(String type, Integer byteRxCount, Integer byteTxCount){
+  /*  public boolean makeEntry(String type, Integer byteRxCount, Integer byteTxCount){
         Log.d(TAG, "from MakeEntry method");
         int isPostProcessflag=0;
         Double NetLat =null, NetLong =null; Float Netacc=null;
@@ -272,5 +273,65 @@ public class MobileNetworkHelper extends ContextWrapper {
             Log.d(TAG,"Failed to insert data");
         return result;
 
-    }
+    }*/
+  public boolean makeEntry(final Event event, final Integer byteRxCount, final Integer byteTxCount){
+      Log.d(TAG, "from MakeEntry method");
+      AsyncEventResponse.LocationTaskListener listener = new AsyncEventResponse.LocationTaskListener(){
+          @Override
+          public void onAllLocationReceived(Location Netlocation, Location GPSlocation) {
+              // pass the locations to the DB methods here.
+              Log.e("Async:", "call back "+ Netlocation.toString());
+
+              int isPostProcessflag = 0;
+              Double NetLat = null, NetLong = null;
+              Float Netacc = null;
+              Double GPSLat = null, GPSLong = null;
+              Float GPSacc = null;
+              if (GPSlocation == null) {
+                  isPostProcessflag++;
+              } else {
+                  GPSLat = GPSlocation.getLatitude();
+                  GPSLong = GPSlocation.getLongitude();
+                  GPSacc = GPSlocation.getAccuracy();
+              }
+              if (Netlocation == null) {
+                  isPostProcessflag++;
+              } else {
+                  NetLat = Netlocation.getLatitude();
+                  NetLong = Netlocation.getLongitude();
+                  Netacc = Netlocation.getAccuracy();
+              }
+
+              boolean result = mDB.insertData(
+                      event.timestamp / 1000, //utc timestamp in seconds,
+                      event.type,
+                      mCellInfoObserver.getPreviousCellInfo().getCellId(),
+                      mCellInfoObserver.getPreviousCellInfo().getLac(),
+                      mCellInfoObserver.getPreviousCellInfo().getMnc(),
+                      mCellInfoObserver.getPreviousCellInfo().getMcc(),
+                      mCellInfoObserver.getPreviousCellInfo().getConnectionType(),
+                      byteRxCount,
+                      byteTxCount,
+                      NetLat,//locationNet.getLatitude(),
+                      NetLong,//locationNet.getLongitude(),
+                      Netacc,
+                      GPSLat,//locationGPS.getLatitude(),
+                      GPSLong,//locationGPS.getLongitude(),
+                      GPSacc,
+                      isPostProcessflag
+              );
+              if (result == true)
+                  Log.d("Async: PostExecute", "inserted data to DB");
+              else
+                  Log.d("Async: PostExecute", "Failed to insert data");
+
+          }
+      };
+      AsyncEventResponse task = new AsyncEventResponse (listener,getBaseContext(),event);
+      task.execute();
+      return  true;
+
+
+  }
+
 }
