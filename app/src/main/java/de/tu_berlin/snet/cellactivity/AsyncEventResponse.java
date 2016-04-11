@@ -16,7 +16,7 @@ import de.tu_berlin.snet.cellactivity.util.Event;
 
     public class AsyncEventResponse extends AsyncTask<Void, Void, Boolean> implements LocationListener {
     public interface LocationTaskListener {
-         void onAllLocationReceived(Location netLocation, Location gpsLocation);
+         void onAllLocationReceived(Location netLocation, Location gpsLocation, int key);
     }
     private final LocationTaskListener taskListener;
 
@@ -29,12 +29,15 @@ import de.tu_berlin.snet.cellactivity.util.Event;
         private Location Netlocation;
         private Location GPSlocation;
         private LocationManager lm;
+         private int eventKey;
 
-        public AsyncEventResponse(LocationTaskListener taskListener, Context context, Event event) {
+
+        public AsyncEventResponse(LocationTaskListener taskListener, Context context, Event event, int key) {
 
             this.context = context;
             this.taskListener = taskListener;
             this.event = event;
+            this.eventKey = key;
 
         }
 
@@ -44,6 +47,8 @@ import de.tu_berlin.snet.cellactivity.util.Event;
             lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, this);
+
+
         }
 
         @Override
@@ -108,7 +113,7 @@ import de.tu_berlin.snet.cellactivity.util.Event;
             lm.removeUpdates(this);
 
             if(this.taskListener != null) {
-                this.taskListener.onAllLocationReceived(Netlocation, GPSlocation);
+                this.taskListener.onAllLocationReceived(Netlocation, GPSlocation, eventKey);
             }
 
 
