@@ -32,9 +32,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final Pair<String, String> COL_NETWORK_LAT = new Pair("NETWORK_LAT", "REAL");
     private static final Pair<String, String> COL_NETWORK_LON = new Pair("NETWORK_LON", "REAL");
     private static final Pair<String, String> COL_NETWORK_ACC = new Pair("NETWORK_ACC", "REAL");
-    private static final Pair<String, String> COL_WIFI_LAT = new Pair("WIFI_LAT", "REAL");
-    private static final Pair<String, String> COL_WIFI_LON = new Pair("WIFI_LON", "REAL");
-    private static final Pair<String, String> COL_WIFI_ACC = new Pair("WIFI_ACC", "REAL");
+    private static final Pair<String, String> COL_API_LAT = new Pair("API_LAT", "REAL");
+    private static final Pair<String, String> COL_API_LON = new Pair("API_LON", "REAL");
+    private static final Pair<String, String> COL_API_ACC = new Pair("API_ACC", "REAL");
     private static final Pair<String, String> COL_GPS_LAT = new Pair("GPS_LAT", "REAL");
     private static final Pair<String, String> COL_GPS_LON = new Pair("GPS_LON", "REAL");
     private static final Pair<String, String> COL_GPS_ACC = new Pair("GPS_ACC", "REAL");
@@ -79,9 +79,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         COL_NETWORK_LAT.first + " " + COL_NETWORK_LAT.second + ", " +
                         COL_NETWORK_LON.first + " " + COL_NETWORK_LON.second + ", " +
                         COL_NETWORK_ACC.first + " " + COL_NETWORK_ACC.second + ", " +
-                        COL_WIFI_LAT.first + " " + COL_WIFI_LAT.second + ", " +
-                        COL_WIFI_LON.first + " " + COL_WIFI_LON.second + ", " +
-                        COL_WIFI_ACC.first + " " + COL_WIFI_ACC.second + ", " +
+                        COL_API_LAT.first + " " + COL_API_LAT.second + ", " +
+                        COL_API_LON.first + " " + COL_API_LON.second + ", " +
+                        COL_API_ACC.first + " " + COL_API_ACC.second + ", " +
                         COL_GPS_LAT.first + " " + COL_GPS_LAT.second + ", " +
                         COL_GPS_LON.first + " " + COL_GPS_LON.second + ", " +
                         COL_GPS_ACC.first + " " + COL_GPS_ACC.second + "," +
@@ -166,9 +166,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         contentValues.put(COL_NETWORK_LON.first, NetLong);
         contentValues.put(COL_NETWORK_ACC.first, Netacc);
 
-        contentValues.put(COL_WIFI_LAT.first, ApiLat);
-        contentValues.put(COL_WIFI_LON.first, ApiLong);
-        contentValues.put(COL_WIFI_ACC.first, Apiacc);
+        contentValues.put(COL_API_LAT.first, ApiLat);
+        contentValues.put(COL_API_LON.first, ApiLong);
+        contentValues.put(COL_API_ACC.first, Apiacc);
 
         contentValues.put(COL_GPS_LAT.first, GPSLat);
         contentValues.put(COL_GPS_LON.first, GPSLong);
@@ -204,9 +204,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
             cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
             cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
-            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
-            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
-            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
+            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_API_LAT.first));
+            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_API_LON.first));
+            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_API_ACC.first));
             cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
             cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
             cellEventArray[i][18] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
@@ -236,9 +236,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cellEventArray[i][10] = res.getString(res.getColumnIndex(COL_NETWORK_LAT.first));
             cellEventArray[i][11] = res.getString(res.getColumnIndex(COL_NETWORK_LON.first));
             cellEventArray[i][12] = res.getString(res.getColumnIndex(COL_NETWORK_ACC.first));
-            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_WIFI_LAT.first));
-            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_WIFI_LON.first));
-            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_WIFI_ACC.first));
+            cellEventArray[i][13] = res.getString(res.getColumnIndex(COL_API_LAT.first));
+            cellEventArray[i][14] = res.getString(res.getColumnIndex(COL_API_LON.first));
+            cellEventArray[i][15] = res.getString(res.getColumnIndex(COL_API_ACC.first));
             cellEventArray[i][16] = res.getString(res.getColumnIndex(COL_GPS_LAT.first));
             cellEventArray[i][17] = res.getString(res.getColumnIndex(COL_GPS_LON.first));
             cellEventArray[i][18] = res.getString(res.getColumnIndex(COL_GPS_ACC.first));
