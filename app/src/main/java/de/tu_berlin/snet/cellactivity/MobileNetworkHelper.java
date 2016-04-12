@@ -293,8 +293,12 @@ public class MobileNetworkHelper extends ContextWrapper {
               EventList.getmInstance().eventMap.get(key).gpsLocation = GPSlocation;
               EventList.getmInstance().eventMap.get(key).isProcessed++;
              // Log.e("Async:", "call back "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3)
-                 mDB.insertData(key);
+              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
+                  mDB.insertData(key);
+                  EventList.removeFromMap(key);
+              }
+
+
           }
       };
       LocationGoogleApiAsync.HiddenApiTaskListener listener1 = new LocationGoogleApiAsync.HiddenApiTaskListener() {
@@ -303,8 +307,12 @@ public class MobileNetworkHelper extends ContextWrapper {
               EventList.getmInstance().eventMap.get(key).hiddenApiLocation = HiddenApiLocation;
               EventList.getmInstance().eventMap.get(key).isProcessed++;
               //  Log.e("Async:", "API Location "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3)
+              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
                   mDB.insertData(key);
+                  EventList.removeFromMap(key);
+              }
+
+
 
           }
       };
