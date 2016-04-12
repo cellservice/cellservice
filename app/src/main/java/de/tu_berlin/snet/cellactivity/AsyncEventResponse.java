@@ -74,7 +74,7 @@ import de.tu_berlin.snet.cellactivity.util.Event;
                     return true;
                 }
                 // If it's too old, get a new one by location manager
-                if (System.currentTimeMillis() - lastLocationGPS.getTime() > FRESHNESS_TIME || System.currentTimeMillis() - lastLocationNet.getTime() > 10000) {
+                if (System.currentTimeMillis() - lastLocationGPS.getTime() > FRESHNESS_TIME || System.currentTimeMillis() - lastLocationNet.getTime() > FRESHNESS_TIME) {
                     long startTime = System.currentTimeMillis(); //fetch starting time
                     while ((Netlocation == null || GPSlocation == null) && (System.currentTimeMillis() - startTime < ONE_MINUTES)) {
                         try {
