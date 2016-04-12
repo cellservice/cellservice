@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.content.Intent;
@@ -60,8 +61,19 @@ public class MobileNetworkHelper extends ContextWrapper {
         Log.e("networkhelper", "stopping");
     }
 
+    public void onStart() {
+        mCellInfoObserver = CellInfoObserver.getInstance();
+        mCellInfoObserver.onStart();
+        listenForEvents();
+    }
 
-    public void listenForEvents(){
+    public void onStop() {
+        stopListening();
+        mCellInfoObserver.onStop();
+    }
+
+
+    private void listenForEvents(){
         Log.e("networkhelper", "starting");
         mTelephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
         mPhoneStateListener = setupPhoneStateListener();
@@ -73,7 +85,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         mTrafficStateListener = new TrafficStateListener();
         mTrafficObserver.addListener(mTrafficStateListener);
 
-        mCellInfoObserver = CellInfoObserver.getInstance();
+
         mCellInfoStateListener = new CellInfoStateListener();
         mCellInfoObserver.addListener(mCellInfoStateListener);
 
@@ -101,7 +113,7 @@ public class MobileNetworkHelper extends ContextWrapper {
 
     }
 
-    public void stopListening() {
+    private void stopListening() {
         Log.e("networkhelper", "stopping");
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         mTrafficObserver.removeListener(mTrafficStateListener);
@@ -259,7 +271,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 mCellInfoObserver.getPreviousCellInfo().getLac(),
                 mCellInfoObserver.getPreviousCellInfo().getMnc(),
                 mCellInfoObserver.getPreviousCellInfo().getMcc(),
-                mCellInfoObserver.getPreviousCellInfo().getConnectionType(),
+                mCellInfoObserver.getPreviousCellInfo().getConnectionTypeString(),
                 byteRxCount,
                 byteTxCount,
                 NetLat,//locationNet.getLatitude(),

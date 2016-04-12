@@ -159,7 +159,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         contentValues.put(COL_LAC.first, event.cellinfo.getLac());
         contentValues.put(COL_MNC.first, event.cellinfo.getMnc());
         contentValues.put(COL_MCC.first, event.cellinfo.getMcc());
-        contentValues.put(COL_MTYPE.first, event.cellinfo.getConnectionType());
+        contentValues.put(COL_MTYPE.first, event.cellinfo.getConnectionTypeString());
         contentValues.put(COL_DATA_COUNT_RX.first, event.byteRxCount);
         contentValues.put(COL_DATA_COUNT_TX.first, event.byteTxCount);
         contentValues.put(COL_NETWORK_LAT.first, NetLat);

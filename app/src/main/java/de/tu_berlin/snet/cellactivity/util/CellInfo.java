@@ -5,15 +5,14 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class CellInfo {
-    private int mCellId, mLac, mMnc, mMcc;
-    private String mConnectionType;
+    private int mCellId, mLac, mMnc, mMcc, mConnectionType;
 
     public CellInfo(int cellid, int lac, int mnc, int mcc, int connectionType) {
         mCellId = cellid;
         mLac = lac;
         mMnc = mnc;
         mMcc = mcc;
-        mConnectionType = resolveNetworkType(connectionType);
+        mConnectionType = connectionType;
     }
 
     private String resolveNetworkType(int networkType) {
@@ -81,8 +80,10 @@ public class CellInfo {
         return mMcc;
     }
 
-    public String getConnectionType() {
-        return mConnectionType;
+    public int getConnectionType() { return mConnectionType; }
+
+    public String getConnectionTypeString() {
+        return resolveNetworkType(mConnectionType);
     }
 
     @Override

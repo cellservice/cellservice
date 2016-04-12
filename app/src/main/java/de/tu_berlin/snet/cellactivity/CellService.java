@@ -1,16 +1,13 @@
 package de.tu_berlin.snet.cellactivity;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.os.IBinder;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.widget.Toast;
 
 public class CellService extends Service {
 
+    public static final String SHARED_PREFERENCES = "CellServiceSharedPreferences";
     private static final String TAG = "T-LAB-LocationChecker";
     private static Service instance;
     MobileNetworkHelper mobileNetworkHelper;
@@ -42,14 +39,14 @@ public class CellService extends Service {
             Toast.makeText(this, "didn't receive any data, but caught exception "+e.toString(), Toast.LENGTH_LONG).show();
         }
 
-        mobileNetworkHelper.listenForEvents();
+        mobileNetworkHelper.onStart();
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mobileNetworkHelper.stopListening();
+        mobileNetworkHelper.onStop();
         mobileNetworkHelper = null;
         Toast.makeText(this, "Service is stopped", Toast.LENGTH_LONG).show();
     }
