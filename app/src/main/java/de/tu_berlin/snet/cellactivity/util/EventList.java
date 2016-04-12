@@ -33,7 +33,7 @@ public class EventList {
         mInstance.eventMap.put(count, e);
     }
 
-    public  void removeFromMap (Integer position){
+    public  static  void removeFromMap (Integer position){
         mInstance.eventMap.remove(position);
     }
 

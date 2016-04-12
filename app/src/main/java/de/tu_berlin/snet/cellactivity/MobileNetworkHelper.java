@@ -293,30 +293,48 @@ public class MobileNetworkHelper extends ContextWrapper {
   public boolean makeEntry(Event event){
       Log.d(TAG, "from MakeEntry method");
       event.cellinfo = mCellInfoObserver.getPreviousCellInfo();
-      Log.d("makeEntry", "("+ event.cellinfo.getCellId()+" " +event.cellinfo.getLac()+")");
+      Log.d("makeEntry", "(" + event.cellinfo.getCellId() + " " + event.cellinfo.getLac() + ")");
       EventList.getmInstance().addToMap(event);
 
-      AsyncEventResponse.LocationTaskListener listener = new AsyncEventResponse.LocationTaskListener(){
+      AsyncEventResponseGPS.GPSLocationTaskListener GPSListener = new AsyncEventResponseGPS.GPSLocationTaskListener(){
           @Override
-          public void onAllLocationReceived(Location Netlocation, Location GPSlocation, int key) {
-
-              EventList.getmInstance().eventMap.get(key).netLocation = Netlocation;
-              EventList.getmInstance().eventMap.get(key).isProcessed++;
+          public void onGPSLocationReceived(Location GPSlocation, int key) {
               EventList.getmInstance().eventMap.get(key).gpsLocation = GPSlocation;
               EventList.getmInstance().eventMap.get(key).isProcessed++;
              // Log.e("Async:", "call back "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3)
-                 mDB.insertData(key);
+              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
+                  mDB.insertData(key);
+                  EventList.removeFromMap(key);
+              }
+
+
           }
       };
-      LocationGoogleApiAsync.HiddenApiTaskListener listener1 = new LocationGoogleApiAsync.HiddenApiTaskListener() {
+      AsyncEventResponseLP.NetLocationTaskListener LPListener = new AsyncEventResponseLP.NetLocationTaskListener(){
+          @Override
+          public void onNetLocationReceived(Location Netlocation, int key) {
+
+              EventList.getmInstance().eventMap.get(key).netLocation = Netlocation;
+              EventList.getmInstance().eventMap.get(key).isProcessed++;
+              // Log.e("Async:", "call back "+ Netlocation.toString());
+              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
+                  mDB.insertData(key);
+                  EventList.removeFromMap(key);
+              }
+          }
+      };
+      LocationGoogleApiAsync.HiddenApiTaskListener ApiListener = new LocationGoogleApiAsync.HiddenApiTaskListener() {
           @Override
           public void onLocationReceived(Location HiddenApiLocation, int key) {
               EventList.getmInstance().eventMap.get(key).hiddenApiLocation = HiddenApiLocation;
               EventList.getmInstance().eventMap.get(key).isProcessed++;
               //  Log.e("Async:", "API Location "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3)
+              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
                   mDB.insertData(key);
+                  EventList.removeFromMap(key);
+              }
+
+
 
           }
       };
@@ -325,12 +343,16 @@ public class MobileNetworkHelper extends ContextWrapper {
       * start the async tasks (api and network providers) by pasing event object and a token
       * when the task is done, return event object with location data and token to identify the object
       * */
-      //task 1
-      AsyncEventResponse task1 = new AsyncEventResponse (listener,getBaseContext(),event,EventList.getCount());
-      task1.execute();
-      //task 2
-      LocationGoogleApiAsync task2 = new LocationGoogleApiAsync(listener1, event, EventList.getCount());
-      task2.execute();
+      //new task
+      LocationGoogleApiAsync taskAPI = new LocationGoogleApiAsync(ApiListener, event, EventList.getCount());
+      taskAPI.execute();
+      //new task
+      AsyncEventResponseLP taskNP = new AsyncEventResponseLP (LPListener,getBaseContext(),event,EventList.getCount());
+      taskNP.execute();
+      //new task
+      AsyncEventResponseGPS taskGPS = new AsyncEventResponseGPS (GPSListener,getBaseContext(),event,EventList.getCount());
+      taskGPS.execute();
+
 
       return  true;
 
