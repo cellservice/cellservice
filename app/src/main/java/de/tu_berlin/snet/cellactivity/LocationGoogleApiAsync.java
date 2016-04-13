@@ -14,6 +14,7 @@ import java.net.URL;
 
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
 import de.tu_berlin.snet.cellactivity.util.Event;
+import de.tu_berlin.snet.cellactivity.util.EventList;
 
 /**
  * Created by ashish on 21.03.16.
@@ -83,6 +84,7 @@ public class LocationGoogleApiAsync extends AsyncTask<Void,Void,String> {
         // dismiss progress dialog and update ui
         Log.d("Async Task", result);
         if(this.taskListener != null) {
+            EventList.getmInstance().eventMap.get(key).endtimestamp = System.currentTimeMillis();
             this.taskListener.onLocationReceived(hiddenApiLocation, this.key);
         }
     }

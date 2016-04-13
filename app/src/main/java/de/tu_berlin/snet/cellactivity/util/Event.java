@@ -8,6 +8,7 @@ import android.location.Location;
 public class Event {
     public String type;
     public long timestamp;
+    public long endtimestamp;
     public Location netLocation;
     public Location gpsLocation;
     public Location hiddenApiLocation;
