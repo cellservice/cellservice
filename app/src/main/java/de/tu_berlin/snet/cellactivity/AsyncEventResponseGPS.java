@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import de.tu_berlin.snet.cellactivity.util.Event;
+import de.tu_berlin.snet.cellactivity.util.EventList;
 
 /**
  * Created by ashish on 30.03.16.
@@ -100,6 +101,7 @@ import de.tu_berlin.snet.cellactivity.util.Event;
             }
 
             if(this.taskListener != null) {
+                EventList.getmInstance().eventMap.get(eventKey).endtimestamp = System.currentTimeMillis();
                 this.taskListener.onGPSLocationReceived(GPSlocation, eventKey);
             }
 
