@@ -95,6 +95,69 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public boolean insertData(int key) {
+        Event event = EventList.getmInstance().eventMap.get(key);
+        SQLiteDatabase db = this.getWritableDatabase();
+        int isPostProcessflag = 0;
+        Double NetLat = null, NetLong = null;
+        Float Netacc = null;
+        Double GPSLat = null, GPSLong = null;
+        Float GPSacc = null;
+        Double ApiLat = null, ApiLong = null;
+        Float Apiacc = null;
+        if ( event.gpsLocation == null) {
+            isPostProcessflag++;
+        } else {
+            GPSLat =  event.gpsLocation.getLatitude();
+            GPSLong =  event.gpsLocation.getLongitude();
+            GPSacc =  event.gpsLocation.getAccuracy();
+        }
+        if (event.netLocation == null) {
+            isPostProcessflag++;
+        } else {
+            NetLat = event.netLocation.getLatitude();
+            NetLong = event.netLocation.getLongitude();
+            Netacc = event.netLocation.getAccuracy();
+        }
+        if (event.hiddenApiLocation == null) {
+            isPostProcessflag++;
+        } else {
+            ApiLat= event.hiddenApiLocation.getLatitude();
+            ApiLong = event.hiddenApiLocation.getLongitude();
+            Apiacc = event.hiddenApiLocation.getAccuracy();
+        }
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_TIMESTAMP.first, event.timestamp/1000);
+        contentValues.put(COL_EVENT.first, event.type);
+        contentValues.put(COL_CELLID.first, event.cellinfo.getCellId());
+        contentValues.put(COL_LAC.first, event.cellinfo.getLac());
+        contentValues.put(COL_MNC.first, event.cellinfo.getMnc());
+        contentValues.put(COL_MCC.first, event.cellinfo.getMcc());
+        contentValues.put(COL_MTYPE.first, event.cellinfo.getConnectionType());
+        contentValues.put(COL_DATA_COUNT_RX.first, event.byteRxCount);
+        contentValues.put(COL_DATA_COUNT_TX.first, event.byteTxCount);
+        contentValues.put(COL_NETWORK_LAT.first, NetLat);
+        contentValues.put(COL_NETWORK_LON.first, NetLong);
+        contentValues.put(COL_NETWORK_ACC.first, Netacc);
+
+        contentValues.put(COL_API_LAT.first, ApiLat);
+        contentValues.put(COL_API_LON.first, ApiLong);
+        contentValues.put(COL_API_ACC.first, Apiacc);
+
+        contentValues.put(COL_GPS_LAT.first, GPSLat);
+        contentValues.put(COL_GPS_LON.first, GPSLong);
+        contentValues.put(COL_GPS_ACC.first, GPSacc);
+        contentValues.put(COL_POST_PROCESS.first, isPostProcessflag);
+        // returns -1 if it is not inserted
+        long result = db.insert(TABLE_NAME, null, contentValues);
+        if (result != -1)
+            Log.d("DatabaseHelper", "inserted data to DB for " + event.type + " started at "+ event.timestamp/1000);
+        else
+            Log.d("DatabaseHelper", "Failed to insert data "+ event.type + " started at "+ event.timestamp/1000);
+
+        return (result != -1);
+    }
+    
 
     public String[][] getAllDataAsArrayOnDate(String date) {
         SQLiteDatabase db = this.getWritableDatabase();
