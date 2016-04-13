@@ -177,9 +177,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // returns -1 if it is not inserted
         long result = db.insert(TABLE_NAME, null, contentValues);
         if (result != -1)
-            Log.d("DatabaseHelper", "inserted data to DB");
+            Log.d("DatabaseHelper", "inserted data to DB for " + event.type + " started at "+ event.timestamp/1000);
         else
-            Log.d("DatabaseHelper", "Failed to insert data");
+            Log.d("DatabaseHelper", "Failed to insert data "+ event.type + " started at "+ event.timestamp/1000);
 
         return (result != -1);
     }
