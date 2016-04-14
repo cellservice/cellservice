@@ -9,6 +9,8 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,26 +67,18 @@ public class CellInfoObserver {
     private void initializeOrRestoreCellInfos() {
         // Restore preferences
         SharedPreferences settings = CellService.get().getSharedPreferences(CellService.SHARED_PREFERENCES, 0);
+        Gson gson = new Gson();
         // retrieve the last timestamp. Default value is 2016-01-01 01:01:01 CET
         long lastTimestamp = settings.getLong("CellInfoObserverLastTimestamp", 1451606461000L);
+
         // if there was a last timestamp in the previous 5 minutes
         long fiveMinsAgo = System.currentTimeMillis() - (5 * 60 * 1000);
-
         if(fiveMinsAgo < lastTimestamp) {
             Log.e("PERSISTENCE", "retrieving cellinfos");
-            setPreviousCellInfo(new CellInfo(
-                    settings.getInt("mPreviousCellInfo.CellId", -1),
-                    settings.getInt("mPreviousCellInfo.LAC", -1),
-                    settings.getInt("mPreviousCellInfo.MNC", -1),
-                    settings.getInt("mPreviousCellInfo.MCC", -1),
-                    settings.getInt("mPreviousCellInfo.type", -1)));
-
-            setCurrentCellInfo(new CellInfo(
-                    settings.getInt("mCurrentCellInfo.CellId", -1),
-                    settings.getInt("mCurrentCellInfo.LAC", -1),
-                    settings.getInt("mCurrentCellInfo.MNC", -1),
-                    settings.getInt("mCurrentCellInfo.MCC", -1),
-                    settings.getInt("mCurrentCellInfo.type", -1)));
+            Log.e("PERSISTENCE", "retrieving cellinfos previous: "+settings.getString("previousCellInfo", ""));
+            Log.e("PERSISTENCE", "retrieving cellinfos current: "+settings.getString("currentCellInfo", ""));
+            setPreviousCellInfo(gson.fromJson(settings.getString("previousCellInfo", ""), CellInfo.class));
+            setCurrentCellInfo(gson.fromJson(settings.getString("currentCellInfo",""), CellInfo.class));
         } // otherwise: create new objects
         else {
             setPreviousCellInfo(new CellInfo());
@@ -96,17 +90,11 @@ public class CellInfoObserver {
         Log.e("PERSISTENCE", "saving cellinfos");
         SharedPreferences settings = CellService.get().getSharedPreferences(CellService.SHARED_PREFERENCES, 0);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putInt("mPreviousCellInfo.CellId", mPreviousCellInfo.getCellId());
-        editor.putInt("mPreviousCellInfo.LAC", mPreviousCellInfo.getLac());
-        editor.putInt("mPreviousCellInfo.MNC", mPreviousCellInfo.getMnc());
-        editor.putInt("mPreviousCellInfo.MCC", mPreviousCellInfo.getMcc());
-        editor.putInt("mPreviousCellInfo.type", mPreviousCellInfo.getConnectionType());
+        Gson gson = new Gson();
 
-        editor.putInt("mCurrentCellInfo.CellId", mCurrentCellInfo.getCellId());
-        editor.putInt("mCurrentCellInfo.LAC", mCurrentCellInfo.getLac());
-        editor.putInt("mCurrentCellInfo.MNC", mCurrentCellInfo.getMnc());
-        editor.putInt("mCurrentCellInfo.MCC", mCurrentCellInfo.getMcc());
-        editor.putInt("mCurrentCellInfo.type", mCurrentCellInfo.getConnectionType());
+        Log.e("PERSISTENCE", "previousCellInfoJson: "+gson.toJson(getPreviousCellInfo()));
+        editor.putString("previousCellInfo", gson.toJson(getPreviousCellInfo()));
+        editor.putString("currentCellInfo", gson.toJson(getCurrentCellInfo()));
 
         editor.putLong("CellInfoObserverLastTimestamp", System.currentTimeMillis());
 
