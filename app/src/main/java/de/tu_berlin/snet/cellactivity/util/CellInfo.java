@@ -2,18 +2,28 @@ package de.tu_berlin.snet.cellactivity.util;
 
 
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 public class CellInfo {
-    private int mCellId, mLac, mMnc, mMcc, mConnectionType;
+    private int cellId, lac, mnc, mcc, connectionType;
 
-    public CellInfo(int cellid, int lac, int mnc, int mcc, int connectionType) {
-        mCellId = cellid;
-        mLac = lac;
-        mMnc = mnc;
-        mMcc = mcc;
-        mConnectionType = connectionType;
+    public CellInfo(int cellId, int lac, int mnc, int mcc, int connectionType) {
+        this.cellId = cellId;
+        this.lac = lac;
+        this.mnc = mnc;
+        this.mcc = mcc;
+        this.connectionType = connectionType;
     }
+    /**
+     * * Error Constructor
+    */
+    public CellInfo() {
+        this.cellId = -1;
+        this.lac = -1;
+        this.mnc = -1;
+        this.mcc = -1;
+        this.connectionType = -1;
+    }
+
 
     private String resolveNetworkType(int networkType) {
         switch (networkType) {
@@ -54,36 +64,27 @@ public class CellInfo {
         }
     }
 
-    /**
-     * Error Constructor
-     */
-    public CellInfo() {
-        mCellId = -1;
-        mLac = -1;
-        mMnc = -1;
-        mMcc = -1;
-    }
 
     public int getCellId() {
-        return mCellId;
+        return cellId;
     }
 
     public int getLac() {
-        return mLac;
+        return lac;
     }
 
     public int getMnc() {
-        return mMnc;
+        return mnc;
     }
 
     public int getMcc() {
-        return mMcc;
+        return mcc;
     }
 
-    public int getConnectionType() { return mConnectionType; }
+    public int getConnectionType() { return connectionType; }
 
     public String getConnectionTypeString() {
-        return resolveNetworkType(mConnectionType);
+        return resolveNetworkType(connectionType);
     }
 
     @Override
