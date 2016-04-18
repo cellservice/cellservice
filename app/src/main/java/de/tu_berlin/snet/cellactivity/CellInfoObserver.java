@@ -25,6 +25,7 @@ import de.tu_berlin.snet.cellactivity.util.CellInfo;
 
 // An interface to be implemented by event listeners
 interface CellInfoListener {
+    void onCellLocationChanged(CellInfo oldCell, CellInfo newCell);
     void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
 }
 
@@ -158,6 +159,8 @@ public class CellInfoObserver {
                     setPreviousCellInfo(getCurrentCellInfo());
                     setCurrentCellInfo(newCellInfo);
                     persistCellInfosToPreferences();
+                    for (CellInfoListener cil : listeners)
+                        cil.onCellLocationChanged(getPreviousCellInfo(), getCurrentCellInfo());
                 }
 
                 if(isLocationUpdate(getPreviousCellInfo(), newCellInfo)) {
