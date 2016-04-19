@@ -223,7 +223,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
             cell = addGPSLocation(addNetworkLocation(cell));
             for (CDRListener l : listeners) {
-                l.onTextMessage(new TextMessage(cell, "sent", receiverAddress));
+                l.onTextMessage(new TextMessage(cell, "outgoing", receiverAddress));
             }
         }
     }
@@ -237,7 +237,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 cell = addGPSLocation(addNetworkLocation(cell));
                 // TODO: ACQUIRE THE NUMBER THE TEXT MESSAGE HAS BEEN RECEIVED FROM, INSTEAD of "secret"
                 for (CDRListener l : listeners) {
-                    l.onTextMessage(new TextMessage(cell, "received", "secret"));
+                    l.onTextMessage(new TextMessage(cell, "incoming", "secret"));
                 }
             }
         }
