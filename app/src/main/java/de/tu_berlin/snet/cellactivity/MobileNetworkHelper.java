@@ -1,98 +1,103 @@
 package de.tu_berlin.snet.cellactivity;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.SharedPreferences;
-import android.location.Location;
-import android.location.LocationManager;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
-import android.telephony.CellLocation;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import de.tu_berlin.snet.cellactivity.record.Call;
+import de.tu_berlin.snet.cellactivity.record.Data;
+import de.tu_berlin.snet.cellactivity.record.Handover;
+import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
+import de.tu_berlin.snet.cellactivity.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
-import de.tu_berlin.snet.cellactivity.util.Event;
-import de.tu_berlin.snet.cellactivity.util.EventList;
 
+interface CDRListener {
+    void onDataSession(Data data);
+
+    void onCallRecord(Call call);
+
+    void onTextMessage(TextMessage textMessage);
+
+    void onLocationUpdate(LocationUpdate locationUpdate);
+}
 
 public class MobileNetworkHelper extends ContextWrapper {
 
-    private static final String TAG = "T-Lab TRACKER";
+    // *********************************************************************************************
+    // members *************************************************************************************
 
-    private DatabaseHelper mDB;
-    private TelephonyManager mTelephonyManager;
-    private PhoneStateListener mPhoneStateListener;
+    private static MobileNetworkHelper instance;
+    private List<CDRListener> listeners = new ArrayList<CDRListener>();
+
+    private Data mCurrentDataRecord;
+    private Call mCurrentCall;
 
     // traffic observer items
     private TrafficObserver mTrafficObserver;
     private TrafficStateListener mTrafficStateListener;
-    private int mCellRxBytes = 0;
-    private int mCellTxBytes = 0;
 
     // cell change items
     private CellInfoObserver mCellInfoObserver;
     private CellInfoStateListener mCellInfoStateListener;
 
-    private int mPreviousCallState;
-    private CallStateListener mCallStateListener;
     private SmsReceiver mSMSReceiver;
 
-    // location checker items
-    private LocationManager mLocationManager = null;
-    private LocationChecker mLocationChecker = null;
+    private CallReceiver mCallReceiver;
 
     // outgoing sms observer items
     private ContentResolver mContentResolver;
     private OutgoingSMSObserver mSMSObserver;
     private OutgoingSMSStateListener mOutgoingSMSStateListener;
 
-    public MobileNetworkHelper(Context base) {
-        super(base);
-        mDB = DatabaseHelper.getInstance(this);
-        Log.e("networkhelper", "stopping");
+    private ExecutorService executor;
+
+    public static MobileNetworkHelper getInstance(Context base) {
+        if (instance == null) instance = new MobileNetworkHelper(base);
+        return instance;
     }
 
+    private MobileNetworkHelper(Context base) {
+        super(base);
+    }
+
+    // *********************************************************************************************
+    // methods *************************************************************************************
     public void onStart() {
         mCellInfoObserver = CellInfoObserver.getInstance();
+        executor = Executors.newFixedThreadPool(10);
         mCellInfoObserver.onStart();
         listenForEvents();
     }
 
     public void onStop() {
         stopListening();
-        mCellInfoObserver.onStop();
     }
 
-
-    private void listenForEvents(){
+    private void listenForEvents() {
         Log.e("networkhelper", "starting");
-        mTelephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
-        mPhoneStateListener = setupPhoneStateListener();
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION);
-
 
         mTrafficObserver = TrafficObserver.getInstance();
         mTrafficObserver.start();
         mTrafficStateListener = new TrafficStateListener();
         mTrafficObserver.addListener(mTrafficStateListener);
 
-
         mCellInfoStateListener = new CellInfoStateListener();
         mCellInfoObserver.addListener(mCellInfoStateListener);
-
-        //location checker items
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mLocationChecker = new LocationChecker(mLocationManager);
-
 
         mSMSObserver = OutgoingSMSObserver.getInstance();
         mContentResolver = this.getContentResolver();
@@ -100,263 +105,188 @@ public class MobileNetworkHelper extends ContextWrapper {
         mOutgoingSMSStateListener = new OutgoingSMSStateListener();
         mSMSObserver.addListener(mOutgoingSMSStateListener);
 
-
-        mPreviousCallState = mTelephonyManager.getCallState();
-        mCallStateListener = new CallStateListener();
-        mTelephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.provider.Telephony.SMS_RECEIVED");
-        filter.addAction("android.provider.Telephony.SMS_SENT");
+        IntentFilter smsFilter = new IntentFilter();
+        smsFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+        smsFilter.addAction("android.provider.Telephony.SMS_SENT");
         mSMSReceiver = new SmsReceiver();
-        registerReceiver(mSMSReceiver, filter);
+        registerReceiver(mSMSReceiver, smsFilter);
+
+        IntentFilter callFilter = new IntentFilter();
+        callFilter.addAction("android.intent.action.PHONE_STATE");
+        callFilter.addAction("android.intent.action.NEW_OUTGOING_CALL");
+        mCallReceiver = new CallReceiver();
+        registerReceiver(mCallReceiver, callFilter);
 
     }
 
     private void stopListening() {
         Log.e("networkhelper", "stopping");
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         mTrafficObserver.removeListener(mTrafficStateListener);
         mTrafficObserver.stop();
 
         mCellInfoObserver.removeListener(mCellInfoStateListener);
+        mCellInfoObserver.onStop();
 
-        mTelephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_NONE);
         unregisterReceiver(mSMSReceiver);
+
+        unregisterReceiver(mCallReceiver);
 
         mContentResolver.unregisterContentObserver(mSMSObserver);
         mSMSObserver.removeListener(mOutgoingSMSStateListener);
     }
 
-    public PhoneStateListener setupPhoneStateListener()
-    {
-        return new PhoneStateListener() {
+    public void addListener(CDRListener listener) {
+        listeners.add(listener);
+    }
 
-            /** Callback invoked when device cell location changes. */
-            @SuppressLint("NewApi")
-            public void onCellLocationChanged(CellLocation location)
-            {
-                Log.e("cellp", "last cellid: " + mCellInfoObserver.getPreviousCellInfo() + " total bytes: " + mCellRxBytes + mCellTxBytes);
+    public void removeListener(CDRListener listener) {
+        listeners.remove(listener);
+    }
 
-                if(mCellRxBytes + mCellTxBytes > 0) {
-                    makeEntry(new Event("data", System.currentTimeMillis(), mCellRxBytes, mCellTxBytes));
+    private CellInfo addGPSLocation(CellInfo cellInfo) {
+        Future<Location> lf = executor.submit(new LocationFuture(LocationManager.GPS_PROVIDER));
+        cellInfo.addLocations(lf);
+        return cellInfo;
+    }
+
+    private CellInfo addNetworkLocation(CellInfo cellInfo) {
+        // TODO: Only if WLAN is connected, i.e. has internet access
+        // THUS NOT LEADING TO A NEW DATAPOINT THAT WOULD OTHERWISE NOT BE CREATED
+        ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        if (mWifi.isConnected()) {
+            Future<Location> lf = executor.submit(new LocationFuture(LocationManager.NETWORK_PROVIDER));
+            cellInfo.addLocations(lf);
+        }
+
+        return cellInfo;
+    }
+
+    private CellInfo addNetworkLocation(CellInfo cellInfo, boolean force) {
+        if(force) {
+            cellInfo.addLocations(executor.submit(new LocationFuture(LocationManager.NETWORK_PROVIDER)));
+            return cellInfo;
+        } else {
+            return addNetworkLocation(cellInfo);
+        }
+    }
+
+    // *********************************************************************************************
+    // listener logic ******************************************************************************
+
+    private final class TrafficStateListener implements TrafficListener {
+        @Override
+        public void onBytesTransferred(long rxBytes, long txBytes, long timestamp) {
+            if (mCurrentDataRecord == null) {
+                mCurrentDataRecord = new Data(mCellInfoObserver.getCurrentCellInfo(), rxBytes, txBytes);
+                CellInfo cell = mCurrentDataRecord.getCell();
+                mCurrentDataRecord.setCell(addGPSLocation(addNetworkLocation(cell, true)));
+
+            } else {
+                mCurrentDataRecord.addBytes(rxBytes, txBytes, timestamp);
+            }
+        }
+    }
+
+    private final class CellInfoStateListener implements CellInfoListener {
+        @Override
+        public void onCellLocationChanged(CellInfo oldCell, CellInfo newCell) {
+            if (mCurrentDataRecord != null) {
+                for (CDRListener l : listeners) {
+                    l.onDataSession(mCurrentDataRecord);
                 }
-
-                // reset traffic stats
-                mCellRxBytes = 0;
-                mCellTxBytes = 0;
+                mCurrentDataRecord = null;
             }
-        };
-    }
 
-    class TrafficStateListener implements TrafficListener {
-        @Override
-        public void bytesRxTransferred(long bytes) {
-            mCellRxBytes += bytes;
-            System.out.println(bytes + " bytes received, Total cellRxbytes : "+ mCellRxBytes);
-        }
-        public void bytesTxTransferred(long bytes) {
-            mCellTxBytes += bytes;
-            System.out.println(bytes + " bytes transmitted. Total mCellTxBytes : "+ mCellTxBytes);
-        }
-    }
-
-    class CellInfoStateListener implements CellInfoListener {
-        @Override
-        public void onLocationUpdate(CellInfo oldCellInfo, CellInfo newCellInfo) {
-            makeEntry(new Event("Location Update", System.currentTimeMillis()));
-        }
-    }
-
-    private final class CallStateListener extends PhoneStateListener {
-        @Override
-        public void onCallStateChanged(int newState, String incomingNumber) {
-
-            switch (mPreviousCallState) {
-                case TelephonyManager.CALL_STATE_IDLE:
-                    if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
-                        Log.e("callState", "idle --> off hook = new outgoing call");
-                        makeEntry(new Event("out: " + incomingNumber, System.currentTimeMillis()));
-                    } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
-                        Log.e("callState", "idle --> ringing = new incoming call");
-                        makeEntry(new Event("inc: " + incomingNumber, System.currentTimeMillis()));
-                    }
-                    break;
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                    if (newState == TelephonyManager.CALL_STATE_IDLE) {
-                        Log.e("callState", "off hook --> idle  = disconnected");
-                    } else if (newState == TelephonyManager.CALL_STATE_RINGING) {
-                        Log.e("callState", "off hook --> ringing = another call waiting");
-                    }
-                    Log.e("CALL_STATE_OFFHOOK", String.valueOf(newState));
-                    break;
-                case TelephonyManager.CALL_STATE_RINGING:
-                    if (newState == TelephonyManager.CALL_STATE_OFFHOOK) {
-                        Log.e("callState", "ringing --> off hook = received");
-                        makeEntry(new Event("recv: " + incomingNumber, System.currentTimeMillis()));
-                    } else if (newState == TelephonyManager.CALL_STATE_IDLE) {
-                        Log.e("callState", "ringing --> idle = missed call");
-                    }
-                    break;
+            if (mCurrentCall != null) {
+                oldCell = addGPSLocation(addNetworkLocation(oldCell));
+                newCell = addGPSLocation(addNetworkLocation(newCell));
+                mCurrentCall.addHandover(new Handover(oldCell, newCell));
             }
-            mPreviousCallState = newState;
+        }
+
+        @Override
+        public void onLocationUpdate(CellInfo oldCell, CellInfo newCell) {
+            oldCell = addGPSLocation(addNetworkLocation(oldCell));
+            newCell = addGPSLocation(addNetworkLocation(newCell));
+
+            for (CDRListener l : listeners) {
+                l.onLocationUpdate(new LocationUpdate(oldCell, newCell));
+            }
         }
     }
 
     private final class OutgoingSMSStateListener implements OutgoingSMSListener {
         @Override
         public void onSMSSent(String receiverAddress) {
-            makeEntry(new Event("SMS sent", System.currentTimeMillis()));
+            CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
+            cell = addGPSLocation(addNetworkLocation(cell));
+            for (CDRListener l : listeners) {
+                l.onTextMessage(new TextMessage(cell, "sent", receiverAddress));
+            }
         }
     }
 
-    public class SmsReceiver extends BroadcastReceiver {
+    public final class SmsReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if(action.equals("android.provider.Telephony.SMS_RECEIVED")){
-                //action for sms received
-                Log.e("SMS", "From Broadcast receiver: "+"SMS Received");
-                makeEntry(new Event("SMS recv", System.currentTimeMillis()));
-            }
-            /* THIS DOESN'T WORK 
-            * http://stackoverflow.com/questions/990558/android-broadcast-receiver-for-sent-sms-messages
-            * */
-            else if(action.equals("android.provider.Telephony.SMS_SENT")){
-                Log.e("SMS", "From Broadcast receiver: "+"SMS Sent");
-                makeEntry(new Event("SMS sent", System.currentTimeMillis()));
+            if (action.equals("android.provider.Telephony.SMS_RECEIVED")) {
+                CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
+                cell = addGPSLocation(addNetworkLocation(cell));
+                // TODO: ACQUIRE THE NUMBER THE TEXT MESSAGE HAS BEEN RECEIVED FROM, INSTEAD of "secret"
+                for (CDRListener l : listeners) {
+                    l.onTextMessage(new TextMessage(cell, "received", "secret"));
+                }
             }
         }
-        // constructor
-        public SmsReceiver(){}
     }
 
-   /* public void makeCallOrTextEntry(Event event) {
-        makeEntry(event, null, null);
+    private final class CallReceiver extends PhonecallReceiver {
+        @Override
+        protected void onIncomingCallReceived(Context ctx, String number, long start) {
+        }
+
+        @Override
+        protected void onIncomingCallAnswered(Context ctx, String number, long start) {
+            CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
+            cell = addGPSLocation(addNetworkLocation(cell));
+            mCurrentCall = new Call(cell, "incoming", number, new ArrayList<Handover>());
+        }
+
+        @Override
+        protected void onIncomingCallEnded(Context ctx, String number, long start, long end) {
+            if (mCurrentCall != null && mCurrentCall.getAddress().equals(number)) {
+                mCurrentCall.setEndTime(end);
+                for (CDRListener l : listeners) {
+                    l.onCallRecord(new Call(mCellInfoObserver.getCurrentCellInfo(), "incoming", number, new ArrayList<Handover>()));
+                }
+                mCurrentCall = null;
+            }
+        }
+
+        @Override
+        protected void onOutgoingCallStarted(Context ctx, String number, long start) {
+            CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
+            cell = addGPSLocation(addNetworkLocation(cell));
+            mCurrentCall = new Call(cell, "outgoing", number, new ArrayList<Handover>());
+        }
+
+        @Override
+        protected void onOutgoingCallEnded(Context ctx, String number, long start, long end) {
+            if (mCurrentCall != null && mCurrentCall.getAddress().equals(number)) {
+                mCurrentCall.setEndTime(end);
+                for (CDRListener l : listeners) {
+                    l.onCallRecord(new Call(mCurrentCall.getStartCell(), "outgoing", number, mCurrentCall.getHandovers()));
+                }
+                mCurrentCall = null;
+            }
+        }
+
+        @Override
+        protected void onMissedCall(Context ctx, String number, long start) {
+        }
     }
-    public void makeDataEntry(Event event, Integer byteRxCount, Integer byteTxCount) {
-        makeEntry(event, byteRxCount,byteTxCount);
-    }*/
-
-  /*  public boolean makeEntry(String type, Integer byteRxCount, Integer byteTxCount){
-        Log.d(TAG, "from MakeEntry method");
-        int isPostProcessflag=0;
-        Double NetLat =null, NetLong =null; Float Netacc=null;
-        Double GPSLat =null, GPSLong =null; Float GPSacc=null;
-        Location locationNet= mLocationChecker.getlocationNETWORK();
-        Location locationGPS = mLocationChecker.getlocationGPS();
-        Log.d(TAG, "Location from GPS when "+type +" "+ locationGPS);
-        Log.d(TAG, "Location from NETWORK when  " + type + " " + locationNet);
-
-        if (locationGPS==null) {
-            isPostProcessflag++;
-        }
-        else{
-            GPSLat=locationGPS.getLatitude();
-            GPSLong=locationGPS.getLongitude();
-            GPSacc = locationGPS.getAccuracy();
-        }
-        if (locationNet==null) {
-            isPostProcessflag++;
-        }
-        else{
-            NetLat=locationNet.getLatitude();
-            NetLong=locationNet.getLongitude();
-            Netacc = locationNet.getAccuracy();
-        }
-        boolean result = mDB.insertData(
-                System.currentTimeMillis() / 1000, //utc timestamp in seconds,
-                type,
-                mCellInfoObserver.getPreviousCellInfo().getCellId(),
-                mCellInfoObserver.getPreviousCellInfo().getLac(),
-                mCellInfoObserver.getPreviousCellInfo().getMnc(),
-                mCellInfoObserver.getPreviousCellInfo().getMcc(),
-                mCellInfoObserver.getPreviousCellInfo().getConnectionTypeString(),
-                byteRxCount,
-                byteTxCount,
-                NetLat,//locationNet.getLatitude(),
-                NetLong,//locationNet.getLongitude(),
-                Netacc,
-                GPSLat,//locationGPS.getLatitude(),
-                GPSLong,//locationGPS.getLongitude(),
-                GPSacc,
-                isPostProcessflag
-        );
-
-        if (result == true)
-            Log.d(TAG,"inserted data to DB");
-        else
-            Log.d(TAG,"Failed to insert data");
-        return result;
-
-    }*/
-  public boolean makeEntry(Event event){
-      Log.d(TAG, "from MakeEntry method");
-      event.cellinfo = mCellInfoObserver.getPreviousCellInfo();
-      Log.d("makeEntry", "(" + event.cellinfo.getCellId() + " " + event.cellinfo.getLac() + ")");
-      EventList.getmInstance().addToMap(event);
-
-      AsyncEventResponseGPS.GPSLocationTaskListener GPSListener = new AsyncEventResponseGPS.GPSLocationTaskListener(){
-          @Override
-          public void onGPSLocationReceived(Location GPSlocation, int key) {
-              EventList.getmInstance().eventMap.get(key).gpsLocation = GPSlocation;
-              EventList.getmInstance().eventMap.get(key).isProcessed++;
-             // Log.e("Async:", "call back "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
-                  mDB.insertData(key);
-                  EventList.removeFromMap(key);
-              }
-
-
-          }
-      };
-      AsyncEventResponseLP.NetLocationTaskListener LPListener = new AsyncEventResponseLP.NetLocationTaskListener(){
-          @Override
-          public void onNetLocationReceived(Location Netlocation, int key) {
-
-              EventList.getmInstance().eventMap.get(key).netLocation = Netlocation;
-              EventList.getmInstance().eventMap.get(key).isProcessed++;
-              // Log.e("Async:", "call back "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
-                  mDB.insertData(key);
-                  EventList.removeFromMap(key);
-              }
-          }
-      };
-      LocationGoogleApiAsync.HiddenApiTaskListener ApiListener = new LocationGoogleApiAsync.HiddenApiTaskListener() {
-          @Override
-          public void onLocationReceived(Location HiddenApiLocation, int key) {
-              EventList.getmInstance().eventMap.get(key).hiddenApiLocation = HiddenApiLocation;
-              EventList.getmInstance().eventMap.get(key).isProcessed++;
-              //  Log.e("Async:", "API Location "+ Netlocation.toString());
-              if(EventList.getmInstance().eventMap.get(key).isProcessed == 3){
-                  mDB.insertData(key);
-                  EventList.removeFromMap(key);
-              }
-
-
-
-          }
-      };
-      /*
-      * add the event to the global map.
-      * start the async tasks (api and network providers) by pasing event object and a token
-      * when the task is done, return event object with location data and token to identify the object
-      * */
-      //new task
-      LocationGoogleApiAsync taskAPI = new LocationGoogleApiAsync(ApiListener, event, EventList.getCount());
-      taskAPI.execute();
-      //new task
-      AsyncEventResponseLP taskNP = new AsyncEventResponseLP (LPListener,getBaseContext(),event,EventList.getCount());
-      taskNP.execute();
-      //new task
-      AsyncEventResponseGPS taskGPS = new AsyncEventResponseGPS (GPSListener,getBaseContext(),event,EventList.getCount());
-      taskGPS.execute();
-
-
-      return  true;
-
-
-  }
 
 }

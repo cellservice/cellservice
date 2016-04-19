@@ -3,14 +3,20 @@ package de.tu_berlin.snet.cellactivity;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
+
+import de.tu_berlin.snet.cellactivity.record.Call;
+import de.tu_berlin.snet.cellactivity.record.Data;
+import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
+import de.tu_berlin.snet.cellactivity.record.TextMessage;
 
 public class CellService extends Service {
 
     public static final String SHARED_PREFERENCES = "CellServiceSharedPreferences";
-    private static final String TAG = "T-LAB-LocationChecker";
     private static Service instance;
     MobileNetworkHelper mobileNetworkHelper;
+    CDRReceiver cdrReceiver = new CDRReceiver();
 
     public CellService() {
     }
@@ -22,7 +28,7 @@ public class CellService extends Service {
     public void onCreate() {
         super.onCreate();
         instance = this;
-        mobileNetworkHelper = new MobileNetworkHelper(this);
+        mobileNetworkHelper = MobileNetworkHelper.getInstance(this);
         Toast.makeText(this, "Service is created", Toast.LENGTH_LONG).show();
     }
 
@@ -39,6 +45,7 @@ public class CellService extends Service {
             Toast.makeText(this, "didn't receive any data, but caught exception "+e.toString(), Toast.LENGTH_LONG).show();
         }
 
+        mobileNetworkHelper.addListener(cdrReceiver);
         mobileNetworkHelper.onStart();
         return super.onStartCommand(intent, flags, startId);
     }
@@ -47,7 +54,7 @@ public class CellService extends Service {
     public void onDestroy() {
         super.onDestroy();
         mobileNetworkHelper.onStop();
-        mobileNetworkHelper = null;
+        mobileNetworkHelper.removeListener(cdrReceiver);
         Toast.makeText(this, "Service is stopped", Toast.LENGTH_LONG).show();
     }
 
@@ -58,5 +65,26 @@ public class CellService extends Service {
     }
 
 
+    private final class CDRReceiver implements CDRListener {
+        @Override
+        public void onDataSession(Data data) {
+            Log.e("CDRReceiver", "received data: " + data);
+        }
+
+        @Override
+        public void onCallRecord(Call call) {
+            Log.e("CDRReceiver", "received call: " + call);
+        }
+
+        @Override
+        public void onTextMessage(TextMessage textMessage) {
+            Log.e("CDRReceiver", "received text: " + textMessage);
+        }
+
+        @Override
+        public void onLocationUpdate(LocationUpdate locationUpdate) {
+            Log.e("CDRReceiver", "received location update: " + locationUpdate);
+        }
+    }
 
 }
