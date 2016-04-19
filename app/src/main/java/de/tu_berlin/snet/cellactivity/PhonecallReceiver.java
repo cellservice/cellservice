@@ -19,6 +19,7 @@ import android.telephony.TelephonyManager;
 public abstract class PhonecallReceiver extends BroadcastReceiver {
 
     //The receiver will be recreated whenever android feels like it.  We need a static variable to remember data between instantiations
+    // TODO: YEAH IM NOT SURE THIS ACTUALLY WORKS... MAYBE PERSISTENCE IS BETTER!?
 
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private static long callStartTime;
