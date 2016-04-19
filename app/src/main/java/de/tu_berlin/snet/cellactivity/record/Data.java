@@ -11,7 +11,11 @@ public class Data {
     private long sessionStart, sessionEnd;
     private CellInfo cell;
 
-    public Data(long rxBytes, long txBytes, long sessionStart, long sessionEnd, CellInfo cell) {
+    public Data(CellInfo cell, long rxBytes, long txBytes) {
+        this(cell, rxBytes, txBytes, System.currentTimeMillis(), System.currentTimeMillis());
+    }
+
+    public Data(CellInfo cell, long rxBytes, long txBytes, long sessionStart, long sessionEnd) {
         setRxBytes(rxBytes);
         setTxBytes(txBytes);
         setSessionStart(sessionStart);
@@ -69,5 +73,16 @@ public class Data {
 
     public void setCell(CellInfo cell) {
         this.cell = cell;
+    }
+
+    public void addBytes(long rxBytes, long txBytes, long timestamp) {
+        setRxBytes(getRxBytes() + rxBytes);
+        setTxBytes(getTxBytes() + txBytes);
+        setSessionEnd(timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return "Data("+this.getCell()+","+getRxBytes()+","+getTxBytes()+","+getSessionStart()+","+getSessionEnd()+")";
     }
 }

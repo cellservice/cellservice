@@ -10,14 +10,14 @@ public class TextMessage extends AbstractCallOrText {
     private CellInfo cell;
     private long time;
 
-    public TextMessage(String direction, String address, CellInfo cell) {
+    public TextMessage(CellInfo cell, String direction, String address) {
         setDirection(direction);
         setAddress(address);
         setCell(cell);
         setTime(System.currentTimeMillis());
     }
 
-    public TextMessage(String direction, String address, CellInfo cell, long time) {
+    public TextMessage(CellInfo cell, String direction, String address, long time) {
         setDirection(direction);
         setAddress(address);
         setCell(cell);

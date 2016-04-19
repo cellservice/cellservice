@@ -13,37 +13,53 @@ public class Call extends AbstractCallOrText {
     private ArrayList<Handover> handovers;
     private long startTime, endTime;
 
-    public Call(String direction, String address, CellInfo startCell, ArrayList<Handover> handovers, long startTime, long endTime) {
+    public Call(CellInfo startCell, String direction, String address, ArrayList<Handover> handovers, long startTime, long endTime) {
+        setHandovers(handovers);
         setDirection(direction);
         setAddress(address);
         setStartCell(startCell);
-        setHandovers(handovers);
         setStartTime(startTime);
         setEndTime(endTime);
+    }
+
+    // TODO: POSSIBLY REMOVE handovers FROM CONSTRUCTOR, AS IT WILL ALMOST ALWAYS BE EMPTY - OR CREATE ADDITIONAL CONSTRUCTOR
+    public Call(CellInfo startCell, String direction, String address, ArrayList<Handover> handovers) {
+        this(startCell, direction, address, handovers, System.currentTimeMillis(), System.currentTimeMillis());
     }
 
     public CellInfo getStartCell() {
         return startCell;
     }
 
-    public void setStartCell(CellInfo startCell) {
-        if(getHandovers().size() > 0) {
-            if(!Check.Network.isSameCell(startCell, getHandovers().get(0).getStartCell())) {
-                throw new IllegalArgumentException("startCell must match first startCell in handovers");
+    private boolean startCellMatchesHandoverStart(CellInfo startCell, ArrayList<Handover> handovers) {
+        if(handovers.size() > 0) {
+            if(Check.Network.isSameCell(startCell, handovers.get(0).getStartCell())) {
+                return true;
+            } else {
+                return false;
             }
         }
+        return true;
+    }
 
-        this.startCell = startCell;
+    public void setStartCell(CellInfo startCell) {
+        if(startCellMatchesHandoverStart(startCell, getHandovers())) {
+            this.startCell = startCell;
+        } else {
+            throw new IllegalArgumentException("startCell must match first startCell in handovers");
+        }
     }
 
     public ArrayList<Handover> getHandovers() {
         return handovers;
     }
     private void setHandovers(ArrayList<Handover> handovers) {
-        if(!Check.Network.isSameCell(getHandovers().get(0).getStartCell(), getStartCell())) {
-            throw new IllegalArgumentException("StartCell in handovers must match startCell of Call");
+        if(startCellMatchesHandoverStart(getStartCell(), handovers)) {
+            this.handovers = handovers;
+        } else {
+            throw new IllegalArgumentException("startCell must match first startCell in handovers");
         }
-        this.handovers = handovers;
+
     }
 
     public void addHandover(Handover handover) {
@@ -70,5 +86,9 @@ public class Call extends AbstractCallOrText {
             throw new IllegalArgumentException("endTime cannot be before startTime");
         }
         this.endTime = endTime;
+    }
+
+    public void endCall() {
+        setEndTime(System.currentTimeMillis());
     }
 }

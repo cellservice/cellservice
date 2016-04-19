@@ -23,6 +23,11 @@ public abstract class AbstractCallOrText {
     }
 
     public void setAddress(String address) {
+        if(address == null) {
+            // This should only happen if the service restarts, and we are already in a call.
+            // TODO: IT'S A PROBLEM. DON'T SOLVE IT HERE. SOLVE IT IN PhonecallReceiver.java
+            address = "null"; // UGLY FIX...
+        }
         if(address.isEmpty()) {
             throw new IllegalArgumentException("address cannot be empty");
         }
