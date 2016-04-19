@@ -87,6 +87,10 @@ public class CellInfo {
         return resolveNetworkType(connectionType);
     }
 
+    public boolean isFake() {
+        return getCellId() == -1 || getLac() == -1 || getMnc() == -1 || getMcc() == -1;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof CellInfo)) {

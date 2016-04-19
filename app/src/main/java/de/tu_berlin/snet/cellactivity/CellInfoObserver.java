@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.util.FakeCellInfo;
 
 /**
  * Created by Friedhelm Victor on 3/29/16.
@@ -65,6 +66,7 @@ public class CellInfoObserver {
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
     }
 
+    // TODO: POSSIBLE PROBLEM: WHAT IF WE ARE NEVER REGISTERED TO A NETWORK? -> NO CELLINFO!
     private void initializeOrRestoreCellInfos() {
         // Restore preferences
         SharedPreferences settings = CellService.get().getSharedPreferences(CellService.SHARED_PREFERENCES, 0);
@@ -82,7 +84,7 @@ public class CellInfoObserver {
             setCurrentCellInfo(gson.fromJson(settings.getString("currentCellInfo",""), CellInfo.class));
         } // otherwise: create new objects
         else {
-            setPreviousCellInfo(new CellInfo());
+            setPreviousCellInfo(getNewCellInfo()); // TODO: WORKS?... SOMETIMES SETS TO FAKECELLINFO
             setCurrentCellInfo(getNewCellInfo());
         }
     }
@@ -116,8 +118,7 @@ public class CellInfoObserver {
     }
 
     private boolean isLocationUpdate(CellInfo oldCellInfo, CellInfo newCellInfo) {
-        return oldCellInfo.getLac() != -1 &&
-                newCellInfo.getLac() != -1 &&
+        return !oldCellInfo.isFake() && !newCellInfo.isFake() &&
                 oldCellInfo.getLac() != newCellInfo.getLac();
     }
 
@@ -141,7 +142,7 @@ public class CellInfoObserver {
 
             return new CellInfo(cellID, lac, mnc, mcc, tm.getNetworkType());
         } catch (Exception e) {
-            return new CellInfo();
+            return new FakeCellInfo();
         }
     }
 
@@ -153,19 +154,29 @@ public class CellInfoObserver {
             @SuppressLint("NewApi")
             public void onCellLocationChanged(CellLocation location) {
                 CellInfo newCellInfo = getNewCellInfo();
+                if(newCellInfo.isFake()) {
+                    return;
+                }
 
                 // if the cell changed, adjust current and previous values and persist
                 if (!getCurrentCellInfo().equals(newCellInfo)) {
                     setPreviousCellInfo(getCurrentCellInfo());
                     setCurrentCellInfo(newCellInfo);
                     persistCellInfosToPreferences();
-                    for (CellInfoListener cil : listeners)
-                        cil.onCellLocationChanged(getPreviousCellInfo(), getCurrentCellInfo());
+                } else {
+                    return; // Cells are the same
                 }
 
-                if(isLocationUpdate(getPreviousCellInfo(), newCellInfo)) {
+                if(!getPreviousCellInfo().isFake()) {
+                    // At this point current and previous CellInfo should not be fake
+
                     for (CellInfoListener cil : listeners)
-                        cil.onLocationUpdate(getPreviousCellInfo(), newCellInfo);
+                        cil.onCellLocationChanged(getPreviousCellInfo(), getCurrentCellInfo());
+
+                    if (isLocationUpdate(getPreviousCellInfo(), newCellInfo)) {
+                        for (CellInfoListener cil : listeners)
+                            cil.onLocationUpdate(getPreviousCellInfo(), newCellInfo);
+                    }
                 }
 
             }
