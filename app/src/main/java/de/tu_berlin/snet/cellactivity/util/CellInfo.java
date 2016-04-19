@@ -1,10 +1,15 @@
 package de.tu_berlin.snet.cellactivity.util;
 
 
+import android.location.Location;
 import android.telephony.TelephonyManager;
+
+import java.util.ArrayList;
+import java.util.concurrent.Future;
 
 public class CellInfo {
     private int cellId, lac, mnc, mcc, connectionType;
+    private ArrayList<Future<Location>> futureLocations;
 
     public CellInfo(int cellId, int lac, int mnc, int mcc, int connectionType) {
         this.cellId = cellId;
@@ -12,17 +17,9 @@ public class CellInfo {
         this.mnc = mnc;
         this.mcc = mcc;
         this.connectionType = connectionType;
+        this.futureLocations = new ArrayList<Future<Location>>();
     }
-    /**
-     * * Error Constructor
-    */
-    public CellInfo() {
-        this.cellId = -1;
-        this.lac = -1;
-        this.mnc = -1;
-        this.mcc = -1;
-        this.connectionType = -1;
-    }
+
 
 
     private String resolveNetworkType(int networkType) {
@@ -89,6 +86,13 @@ public class CellInfo {
 
     public boolean isFake() {
         return getCellId() == -1 || getLac() == -1 || getMnc() == -1 || getMcc() == -1;
+    }
+
+    @SafeVarargs
+    final public void addLocations(Future<Location>... futureLocations) {
+        for(Future<Location> fl : futureLocations) {
+            this.futureLocations.add(fl);
+        }
     }
 
     @Override
