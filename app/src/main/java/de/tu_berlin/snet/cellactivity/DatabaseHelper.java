@@ -8,9 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.util.Pair;
 
-import de.tu_berlin.snet.cellactivity.util.Event;
-import de.tu_berlin.snet.cellactivity.util.EventList;
-
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -95,6 +92,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    /*
     public boolean insertData(int key) {
         Event event = EventList.getmInstance().eventMap.get(key);
         SQLiteDatabase db = this.getWritableDatabase();
@@ -156,7 +154,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.d("DatabaseHelper", "Failed to insert data "+ event.type + " started at "+ new java.util.Date(event.timestamp));
 
         return (result != -1);
-    }
+    }*/
 
 
     public String[][] getAllDataAsArrayOnDate(String date) {

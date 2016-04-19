@@ -12,10 +12,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
-import de.tu_berlin.snet.cellactivity.util.Event;
-import de.tu_berlin.snet.cellactivity.util.EventList;
-
 /**
  * Created by ashish on 21.03.16.
  */
@@ -24,7 +20,7 @@ public class LocationGoogleApiAsync extends AsyncTask<Void,Void,String> {
     public interface HiddenApiTaskListener {
         void onLocationReceived(Location HiddenApiLocation, int key);
     }
-    private Event event;
+    /*private Event event;
     private  int key;
     private Location hiddenApiLocation;
     private final HiddenApiTaskListener taskListener;
@@ -33,14 +29,15 @@ public class LocationGoogleApiAsync extends AsyncTask<Void,Void,String> {
         this.key = key;
         this.taskListener = tasklistener;
         this.hiddenApiLocation = new Location("hiddenApi");
-    }
+    }*/
     protected void onPreExecute() {
         //display progress dialog.
     }
     protected String doInBackground(Void... params) {
 
        String ret = "0,0";
-        try {
+       /*
+       try {
             URL url = new URL("http://www.google.com/glm/mmap");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             Log.d("Async URL", url.toString());
@@ -77,16 +74,18 @@ public class LocationGoogleApiAsync extends AsyncTask<Void,Void,String> {
             }
         }catch (Exception e){
             ret = e.toString();
-        }
+        }*/
         return ret;
     }
     protected void onPostExecute(String result) {
         // dismiss progress dialog and update ui
+        /*
         Log.d("Async Task", result);
         if(this.taskListener != null) {
             EventList.getmInstance().eventMap.get(key).endtimestamp = System.currentTimeMillis();
             this.taskListener.onLocationReceived(hiddenApiLocation, this.key);
         }
+        */
     }
     private void WriteData(OutputStream out,int cellId, int lac)throws
             IOException {
