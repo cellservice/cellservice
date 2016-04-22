@@ -20,10 +20,18 @@ android {
     }
 }
 
+repositories {
+    maven {
+        url  "http://dl.bintray.com/kristina-hager/kh-examples"
+    }
+    jcenter()
+}
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:22.+'
     compile 'com.android.support:design:22.2.0'
     compile 'com.google.code.gson:gson:2.5'
+    compile group: 'com.example', name: 'spatialite-android', version: '1.0.0'
 }
