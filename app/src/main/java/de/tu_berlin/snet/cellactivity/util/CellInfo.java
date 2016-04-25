@@ -95,6 +95,10 @@ public class CellInfo {
         }
     }
 
+    final public ArrayList<Future<Location>> getLocations(){
+        return futureLocations;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof CellInfo)) {
