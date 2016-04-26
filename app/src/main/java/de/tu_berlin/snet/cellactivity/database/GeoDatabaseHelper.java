@@ -59,28 +59,45 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         try{
-            mDb.prepare("SELECT InitSpatialMetaData();").step();
-        }catch (Exception e){}
-       StringBuilder sb = new StringBuilder();
-        String query1 = "CREATE TABLE Cells (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, cellid INT, lac INT, mnc INT, mcc INT);";
-       sb.append("Execute query: ").append(query1).append("\n");
+           mDb.prepare("SELECT InitSpatialMetaData();").step();
+        }catch (Exception e){e.printStackTrace();}
+
+      // StringBuilder sb = new StringBuilder();
+        String query1 = "CREATE TABLE Cells (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, cellid INTEGER, lac INTEGER, mnc INTEGER, mcc INTEGER);";
+      // sb.append("Execute query: ").append(query1).append("\n");
         try{
             Stmt stmt = mDb.prepare(query1);
             stmt.step();
-            Log.i(TAG, "Table created ");
+            Log.i(TAG, "Cells Table created ");
             // mDb.prepare("SELECT AddGeometryColumn('test_geom', 'the_geom', 4326, 'POINT', 'XY');").step();
         }catch (Exception e)
         {
-            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
         try{
-            String query2 = "CREATE TABLE Measurements (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, location POINT, provider varchar(80), cell INT references Cells(id));";
+            String query2 = "CREATE TABLE Measurements (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, provider TEXT, cell INTEGER references Cells(id));";
+            Stmt stmt = mDb.prepare(query2);
+            stmt.step();
+            Log.i(TAG, "Measurement Table created ");
         }
-        catch (Exception e){}
+        catch (Exception e){
+            Log.e(TAG, "Measurement table error");
+            e.printStackTrace();}
         try{
-            String query3 = "CREATE TABLE TextMsgs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, direction varchar(80), address varchar(80), utc REAL, cell INT references Cells(id));";
-        }catch (Exception e){}
+            String query3 = "CREATE TABLE TextMsgs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, direction TEXT, address TEXT, utc DOUBLE, cell INTEGER references Cells(id));";
+            Stmt stmt = mDb.prepare(query3);
+            stmt.step();
+            Log.i(TAG, "Textmsg Table created ");
+        }catch (Exception e){
+            Log.e(TAG, "Textmsg Table error");
+            e.printStackTrace();
+        }
+        String query4 = "CREATE TABLE Calls (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, direction TEXT, address TEXT, starttime DOUBLE, endtime DOUBLE, startcell INTEGER references Cells(id), handover INTEGER references Handovers(id));";
+        String query5 = "CREATE TABLE Handovers(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, startcell references Cells(id), endcell references Cells(id))";
+        exec(query5);
+        exec(query4);
 
 
         /*String query1= "\n" +
@@ -101,16 +118,44 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }*/
 
     }
+    void exec(String q){
+       try {
+           Stmt stmt = mDb.prepare(q);
+           stmt.step();
+       }catch (Exception e){
+           e.printStackTrace();
+       }
+    }
 
     @Override
     public boolean insertRecord(Call call) {
+        //direction TEXT, address TEXT, starttime DOUBLE, endtime DOUBLE, startcell INTEGER references Cells(id), handover INTEGER references Handovers(id))
+        String direction = call.getDirection();
+        String address = call.getAddress();
+        Long starttime = call.getStartTime();
+        Long endtime = call.getEndTime();
+        CellInfo cellInfo = call.getStartCell();
+        Integer cid = cellInfo.getCellId();
+        Integer lac = cellInfo.getLac();
+        Integer mnc = cellInfo.getMnc();
+        Integer mcc = cellInfo.getMcc();
+        String q = "INSERT INTO Cells (id, cellid, lac, mnc, mcc) VALUES (NULL, "+ cid + ", "+ lac +", " + mnc+", "+mcc+")";
+        exec(q);
+
+
 
         return false;
     }
 
     @Override
     public boolean insertRecord(TextMessage textMessage) {
-
+        CellInfo cellInfo = textMessage.getCell();
+        Integer cid = cellInfo.getCellId();
+        Integer lac = cellInfo.getLac();
+        Integer mnc = cellInfo.getMnc();
+        Integer mcc = cellInfo.getMcc();
+        String q = "INSERT INTO Cells (id, cellid, lac, mnc, mcc) VALUES (NULL, "+ cid + ", "+ lac +", " + mnc+", "+mcc+")";
+        exec(q);
         return false;
     }
 
