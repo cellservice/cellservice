@@ -51,6 +51,14 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             "   AND mcc = %4$s" +
             "   AND technology = %5$s";
 
+    private final String callExistsQuery =
+            "SELECT id FROM Calls" +
+            "   WHERE direction = '%1$s'" +
+            "   AND address = '%2$s'" +
+            "   AND starttime = %3$s" +
+            "   AND endtime = %4$s" +
+            "   AND startcell = %5$s";
+
     public static synchronized GeoDatabaseHelper getInstance(Context context) {
 
         // Use the application context, which will ensure that you
@@ -73,92 +81,13 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Careful! This step can take some time!
-        // See http://northredoubt.com/n/2012/06/03/recent-spatialite-news-may-2012/
-        //execSQL("SELECT InitSpatialMetaData('WGS84_ONLY');"); // 130 rows
-        execSQL("SELECT InitSpatialMetaData('NONE');");
-        execSQL("SELECT InsertEpsgSrid(4326);");
-
-        String createCellsTable =
-                "CREATE TABLE IF NOT EXISTS Cells (" +
-                "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "   cellid INTEGER," +
-                "   lac INTEGER," +
-                "   mnc INTEGER," +
-                "   mcc INTEGER," +
-                "   technology INTEGER" +
-                "   );";
-
-        String createLocationUpdatesTable =
-                "CREATE TABLE IF NOT EXISTS LocationUpdates (" +
-                "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "   startcell REFERENCES Cells(id)," +
-                "   endcell REFERENCES Cells(id)," +
-                "   time INTEGER" +
-                "   );";
-
-        String createHandoversTable =
-                "CREATE TABLE IF NOT EXISTS Handovers (" +
-                "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "	startcell REFERENCES Cells(id)," +
-                "	endcell REFERENCES Cells(id)," +
-                "   time INTEGER" +
-                "	)";
-
-        String createDataEventsTable =
-                "CREATE TABLE IF NOT EXISTS DataRecords (" +
-                "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "   rxbytes INTEGER," +
-                "   txbytes INTEGER," +
-                "   starttime INTEGER," +
-                "   endtime INTEGER," +
-                "   cell INTEGER REFERENCES Cells(id)" +
-                "   );";
-
-        String createCallsTable =
-                "CREATE TABLE IF NOT EXISTS Calls (" +
-                "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "	direction TEXT," +
-                "	address TEXT," +
-                "	starttime INTEGER," +
-                "	endtime INTEGER," +
-                "	startcell INTEGER REFERENCES Cells(id)," +
-                "	handover INTEGER REFERENCES Handovers(id)" +
-                "	);";
-
-        String createTextMessagesTable =
-                "CREATE TABLE IF NOT EXISTS TextMessages (" +
-                "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "	direction TEXT," +
-                "	address TEXT," +
-                "	time INTEGER," +
-                "	cell INTEGER REFERENCES Cells(id)" +
-                "	);";
-
-        String createMeasurementsTable =
-                "CREATE TABLE IF NOT EXISTS Measurements (" +
-                "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                "	cell INTEGER REFERENCES Cells(id)," +
-                "	provider TEXT," +
-                "   accuracy REAL" +
-                "	);";
-
-        String addPointGeometryToMeasurementsTable =
-                "SELECT AddGeometryColumn('Measurements', 'centroid', 4326, 'POINT', 'XY', 1);";
-
-
-        execSQL(createCellsTable);
-        execSQL(createLocationUpdatesTable);
-        execSQL(createHandoversTable);
-        execSQL(createDataEventsTable);
-        execSQL(createCallsTable);
-        execSQL(createTextMessagesTable);
-        execSQL(createMeasurementsTable);
-        execSQL(addPointGeometryToMeasurementsTable);
-
+        createTables(); // TODO: ONLY CREATE TABLES IF THE DATABASE DIDN'T EXIST YET
     }
 
+
+    /*
+    TODO: WHY NOT USE mDb.exec? What about the callback feature?
+     */
     synchronized void execSQL(String statement) {
         try {
             Stmt stmt = mDb.prepare(statement);
@@ -186,24 +115,66 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         String address = call.getAddress();
         Long starttime = call.getStartTime();
         Long endtime = call.getEndTime();
+        int cellRecordId = getCellPrimaryKey(cellInfo);
 
-        //String q = "INSERT INTO Calls (id, cellid, lac, mnc, mcc) VALUES (NULL, " + cid + ", " + lac + ", " + mnc + ", " + mcc + ")";
-        //execSQL(q);
+        String insertCallRecordStatement =
+                "INSERT INTO Calls (direction, address, starttime, endtime, startcell)" +
+                "   VALUES ('%1$s', '%2$s', %3$s, %4$s, %5$s);";
+
+        execSQL(String.format(insertCallRecordStatement, direction, address, starttime, endtime, cellRecordId));
+
+        int callId = getCallPrimaryKey(call);
+
+        for(Handover handover : call.getHandovers()) {
+            insertRecord(handover, callId);
+        }
+
         return false;
     }
 
     @Override
     public boolean insertRecord(TextMessage textMessage) {
+        CellInfo cellInfo = textMessage.getCell();
+        insertMeasurement(cellInfo);
+        int cellRecordId = getCellPrimaryKey(cellInfo);
+        String insertTextMessageStatement =
+                "INSERT INTO TextMessages (direction, address, time, cell_id)" +
+                "   VALUES ('%s', '%s', %s, %s);";
+
+        // TODO: Divide timestamp by 1000
+        execSQL(String.format(insertTextMessageStatement, textMessage.getDirection(), textMessage.getAddress(), textMessage.getTime(), cellRecordId));
         return false;
     }
 
     @Override
-    public boolean insertRecord(Handover handover) {
+    public boolean insertRecord(Handover handover, int callId) {
+        String insertHandoverStatement =
+                "INSERT INTO Handovers (startcell, endcell, time)" +
+                "   VALUES (%s, %s, %s);";
+
+        insertMeasurement(handover.getStartCell());
+        int startCellId = getCellPrimaryKey(handover.getStartCell());
+        insertMeasurement(handover.getEndCell());
+        int endCellid = getCellPrimaryKey(handover.getEndCell());
+
+        // TODO: Divide timestamp by 1000
+        execSQL(String.format(insertHandoverStatement, startCellId, endCellid, handover.getTimestamp()));
         return false;
     }
 
     @Override
     public boolean insertRecord(LocationUpdate locationUpdate) {
+        String insertLocationUpdateStatement =
+                "INSERT INTO LocationUpdates (startcell, endcell, time)" +
+                        "   VALUES (%s, %s, %s);";
+
+        insertMeasurement(locationUpdate.getStartCell());
+        int startCellId = getCellPrimaryKey(locationUpdate.getStartCell());
+        insertMeasurement(locationUpdate.getEndCell());
+        int endCellid = getCellPrimaryKey(locationUpdate.getEndCell());
+
+        // TODO: Divide timestamp by 1000
+        execSQL(String.format(insertLocationUpdateStatement, startCellId, endCellid, locationUpdate.getTimestamp()));
         return false;
     }
 
@@ -214,7 +185,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
         int cellRecordId = getCellPrimaryKey(cellInfo);
         String insertDataRecordStatement =
-                "INSERT INTO DataRecords (rxbytes, txbytes, starttime, endtime, cell)" +
+                "INSERT INTO DataRecords (rxbytes, txbytes, starttime, endtime, cell_id)" +
                 "   VALUES (%s, %s, %s, %s, %s);";
 
         execSQL(String.format(insertDataRecordStatement, data.getRxBytes(), data.getTxBytes(), data.getSessionStart(), data.getSessionEnd(), cellRecordId));
@@ -245,7 +216,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "INSERT INTO Measurements (cell, provider, accuracy, centroid)" +
                 "   VALUES (%s, '%s', %s, GeomFromText('POINT(%s %s)', 4326));";
 
-        // TODO: BIG PROBLEM HERE WITH final
+        // TODO: POSSIBLY BIG PROBLEM HERE WITH final
+        // Maybe the Location Futures are being frozen when they actually should still be running
         final ArrayList<Future<Location>> locationMeasurements = cellInfo.getLocations();
 
         new Thread(new Runnable() {
@@ -270,35 +242,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         return true;
     }
 
-    private int getCellPrimaryKey(CellInfo cellInfo) {
-        String cid = String.valueOf(cellInfo.getCellId());
-        String lac = String.valueOf(cellInfo.getLac());
-        String mnc = String.valueOf(cellInfo.getMnc());
-        String mcc = String.valueOf(cellInfo.getMcc());
-        String technology = String.valueOf(cellInfo.getConnectionType());
-        return getId(String.format(cellExistsQuery, cid, lac, mnc, mcc, technology));
-    }
-
-    private int getId(String queryWithOneIdResult) {
-        try {
-            TableResult result = mDb.get_table(queryWithOneIdResult);
-            Vector<String[]> rows = result.rows;
-            int id = Integer.valueOf(rows.get(0)[0]);
-            return id;
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find id with query: "+queryWithOneIdResult);
-            return -1;
-        }
-    }
-
-    // https://www.gaia-gis.it/gaia-sins/spatialite-cookbook/html/ins-upd-del.html
-
-    @Override
-    public void createTables() {
-
-    }
-
     @Override
     public ArrayList<Call> getCallRecords(Date day) {
         return null;
@@ -310,42 +253,162 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     }
 
     @Override
-    public ArrayList<Call> getTextMessageRecords(Date day) {
+    public ArrayList<TextMessage> getTextMessageRecords(Date day) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getTextMessageRecords(Date from, Date to) {
+    public ArrayList<TextMessage> getTextMessageRecords(Date from, Date to) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getHandoverRecords(Date day) {
+    public ArrayList<Handover> getHandoverRecords(Date day) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getHandoverRecords(Date from, Date to) {
+    public ArrayList<Handover> getHandoverRecords(Date from, Date to) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getLocationUpdateRecords(Date day) {
+    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date day) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getLocationUpdateRecords(Date from, Date to) {
+    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getDataRecords(Date day) {
+    public ArrayList<Data> getDataRecords(Date day) {
         return null;
     }
 
     @Override
-    public ArrayList<Call> getDataRecords(Date from, Date to) {
+    public ArrayList<Data> getDataRecords(Date from, Date to) {
         return null;
+    }
+
+    private int getCellPrimaryKey(CellInfo cellInfo) {
+        String cid = String.valueOf(cellInfo.getCellId());
+        String lac = String.valueOf(cellInfo.getLac());
+        String mnc = String.valueOf(cellInfo.getMnc());
+        String mcc = String.valueOf(cellInfo.getMcc());
+        String technology = String.valueOf(cellInfo.getConnectionType());
+        return getId(String.format(cellExistsQuery, cid, lac, mnc, mcc, technology));
+    }
+
+    private int getCallPrimaryKey(Call call) {
+        CellInfo cellInfo = call.getStartCell();
+        String direction = call.getDirection();
+        String address = call.getAddress();
+        Long starttime = call.getStartTime();
+        Long endtime = call.getEndTime();
+        int cellRecordId = getCellPrimaryKey(cellInfo);
+        return getId(String.format(callExistsQuery, direction, address, starttime, endtime, cellRecordId));
+    }
+
+    private int getId(String queryWithOneIdResult) {
+        try {
+            TableResult result = mDb.get_table(queryWithOneIdResult);
+            Vector<String[]> rows = result.rows;
+            return Integer.valueOf(rows.get(0)[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find id with query: "+queryWithOneIdResult);
+            return -1;
+        }
+    }
+
+    @Override
+    public void createTables() {
+        // Careful! This step can take some time!
+        // See http://northredoubt.com/n/2012/06/03/recent-spatialite-news-may-2012/
+        //execSQL("SELECT InitSpatialMetaData('WGS84_ONLY');"); // 130 rows
+        execSQL("SELECT InitSpatialMetaData('NONE');");
+        execSQL("SELECT InsertEpsgSrid(4326);");
+        execSQL("SELECT InsertEpsgSrid(32632);");
+        execSQL("SELECT InsertEpsgSrid(32633);");
+        execSQL("SELECT InsertEpsgSrid(25832);");
+        execSQL("SELECT InsertEpsgSrid(25833);");
+
+        String createCellsTable =
+                "CREATE TABLE IF NOT EXISTS Cells (" +
+                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "   cellid INTEGER," +
+                        "   lac INTEGER," +
+                        "   mnc INTEGER," +
+                        "   mcc INTEGER," +
+                        "   technology INTEGER" +
+                        "   );";
+
+        String createLocationUpdatesTable =
+                "CREATE TABLE IF NOT EXISTS LocationUpdates (" +
+                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "   startcell REFERENCES Cells(id)," +
+                        "   endcell REFERENCES Cells(id)," +
+                        "   time INTEGER" +
+                        "   );";
+
+        String createHandoversTable =
+                "CREATE TABLE IF NOT EXISTS Handovers (" +
+                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "	startcell REFERENCES Cells(id)," +
+                        "	endcell REFERENCES Cells(id)," +
+                        "   time INTEGER" +
+                        "	)";
+
+        String createDataEventsTable =
+                "CREATE TABLE IF NOT EXISTS DataRecords (" +
+                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "   rxbytes INTEGER," +
+                        "   txbytes INTEGER," +
+                        "   starttime INTEGER," +
+                        "   endtime INTEGER," +
+                        "   cell_id INTEGER REFERENCES Cells(id)" +
+                        "   );";
+
+        String createCallsTable =
+                "CREATE TABLE IF NOT EXISTS Calls (" +
+                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "	direction TEXT," +
+                        "	address TEXT," +
+                        "	starttime INTEGER," +
+                        "	endtime INTEGER," +
+                        "	startcell INTEGER REFERENCES Cells(id)" +
+                        "	);";
+
+        String createTextMessagesTable =
+                "CREATE TABLE IF NOT EXISTS TextMessages (" +
+                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "	direction TEXT," +
+                        "	address TEXT," +
+                        "	time INTEGER," +
+                        "	cell_id INTEGER REFERENCES Cells(id)" +
+                        "	);";
+
+        String createMeasurementsTable =
+                "CREATE TABLE IF NOT EXISTS Measurements (" +
+                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "	cell_id INTEGER REFERENCES Cells(id)," +
+                        "	provider TEXT," +
+                        "   accuracy REAL" +
+                        "	);";
+
+        String addPointGeometryToMeasurementsTable =
+                "SELECT AddGeometryColumn('Measurements', 'centroid', 4326, 'POINT', 'XY', 1);";
+
+
+        execSQL(createCellsTable);
+        execSQL(createLocationUpdatesTable);
+        execSQL(createHandoversTable);
+        execSQL(createDataEventsTable);
+        execSQL(createCallsTable);
+        execSQL(createTextMessagesTable);
+        execSQL(createMeasurementsTable);
+        execSQL(addPointGeometryToMeasurementsTable);
     }
 }

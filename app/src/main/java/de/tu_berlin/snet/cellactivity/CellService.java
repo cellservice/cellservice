@@ -84,11 +84,13 @@ public class CellService extends Service {
         @Override
         public void onTextMessage(TextMessage textMessage) {
             Log.e("CDRReceiver", "received text: " + textMessage);
+            geoDatabaseHelper.insertRecord(textMessage);
         }
 
         @Override
         public void onLocationUpdate(LocationUpdate locationUpdate) {
             Log.e("CDRReceiver", "received location update: " + locationUpdate);
+            geoDatabaseHelper.insertRecord(locationUpdate);
         }
     }
 
