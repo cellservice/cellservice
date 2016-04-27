@@ -6,6 +6,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import de.tu_berlin.snet.cellactivity.database.GeoDatabaseHelper;
 import de.tu_berlin.snet.cellactivity.record.Call;
 import de.tu_berlin.snet.cellactivity.record.Data;
 import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
@@ -17,6 +18,7 @@ public class CellService extends Service {
     private static Service instance;
     MobileNetworkHelper mobileNetworkHelper;
     CDRReceiver cdrReceiver = new CDRReceiver();
+    GeoDatabaseHelper geoDatabaseHelper;
 
     public CellService() {
     }
@@ -29,6 +31,7 @@ public class CellService extends Service {
         super.onCreate();
         instance = this;
         mobileNetworkHelper = MobileNetworkHelper.getInstance(this);
+        geoDatabaseHelper = GeoDatabaseHelper.getInstance(this);
         Toast.makeText(this, "Service is created", Toast.LENGTH_LONG).show();
     }
 
@@ -69,11 +72,13 @@ public class CellService extends Service {
         @Override
         public void onDataSession(Data data) {
             Log.e("CDRReceiver", "received data: " + data);
+            geoDatabaseHelper.insertRecord(data);
         }
 
         @Override
         public void onCallRecord(Call call) {
             Log.e("CDRReceiver", "received call: " + call);
+            geoDatabaseHelper.insertRecord(call);
         }
 
         @Override
