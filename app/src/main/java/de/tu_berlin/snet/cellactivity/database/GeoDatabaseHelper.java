@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
@@ -50,6 +52,12 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             "   AND mnc = %3$s" +
             "   AND mcc = %4$s" +
             "   AND technology = %5$s";
+    private  final String handoverExistsQuery =
+            "SELECT id FROM Handovers"+
+            "  WHERE startcell = %1$s"+
+            "  AND endcell =%2$s"+
+            "  AND time = %3$s"+
+            "  AND time = %4$s";
 
     public static synchronized GeoDatabaseHelper getInstance(Context context) {
 
@@ -104,6 +112,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "	startcell REFERENCES Cells(id)," +
                 "	endcell REFERENCES Cells(id)," +
                 "   time INTEGER" +
+                "   callid REFERENCES Calls(id)"+
                 "	)";
 
         String createDataEventsTable =
@@ -123,8 +132,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "	address TEXT," +
                 "	starttime INTEGER," +
                 "	endtime INTEGER," +
-                "	startcell INTEGER REFERENCES Cells(id)," +
-                "	handover INTEGER REFERENCES Handovers(id)" +
+                "	startcell INTEGER REFERENCES Cells(id)" +
+              //  "	handover INTEGER REFERENCES Handovers(id)" + //one call can be have more than one HO
                 "	);";
 
         String createTextMessagesTable =
@@ -181,24 +190,50 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     public boolean insertRecord(Call call) {
         CellInfo cellInfo = call.getStartCell();
         insertMeasurement(cellInfo);
+        //get the id of the cellid
+        int cellRecordId = getCellPrimaryKey(cellInfo);
+        String insertCallRecordStatement =
+                "INSERT INTO Calls (direction, address, starttime, endtime, startcell)" + "  VALUES (%1$s, %2$s, %3$s, %4$s, %5$s);";
 
-        String direction = call.getDirection();
-        String address = call.getAddress();
-        Long starttime = call.getStartTime();
-        Long endtime = call.getEndTime();
-
-        //String q = "INSERT INTO Calls (id, cellid, lac, mnc, mcc) VALUES (NULL, " + cid + ", " + lac + ", " + mnc + ", " + mcc + ")";
-        //execSQL(q);
+        execSQL(insertCallRecordStatement, call.getDirection(), call.getAddress(), String.valueOf(call.getStartTime()), String.valueOf(call.getEndTime()), String.valueOf(cellRecordId));
+        //int callId = getLastRowId("Calls");
+        //get the row id
+       // insert handover(handovers, id of the call)
+        Iterator<Handover> handoverIterator = call.getHandovers().iterator();
+        while (handoverIterator.hasNext()) {
+            insertRecord(handoverIterator.next());
+        }
         return false;
     }
 
     @Override
     public boolean insertRecord(TextMessage textMessage) {
+
+        CellInfo cellInfo = textMessage.getCell();
+        insertMeasurement(cellInfo);
+
+        int cellRecordId = getCellPrimaryKey(cellInfo);
+        String insertDataRecordStatement =
+                "INSERT INTO TextMessages (direction, address, time, cell)" +
+                        "   VALUES (%s, %s, %s, %s);";
+
+        execSQL(String.format(insertDataRecordStatement,textMessage.getDirection(), textMessage.getAddress(), textMessage.getTime(),cellRecordId));
         return false;
     }
 
     @Override
     public boolean insertRecord(Handover handover) {
+
+        String insertHandoverStatement =
+                "INSERT INTO Handovers (startcell, endcell, time, callid )" +
+                        "   SELECT %1$s, %2$s, %3$s, %4$s" +
+                        "   WHERE NOT EXISTS (" +
+                        handoverExistsQuery +
+                        "   );";
+        int startcellId = getCellPrimaryKey(handover.getStartCell());
+        int endcellid   = getCellPrimaryKey(handover.getEndCell());
+        long time       = handover.getTimestamp();
+        execSQL(String.format(insertHandoverStatement,startcellId, endcellid, time));
         return false;
     }
 
@@ -216,7 +251,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         String insertDataRecordStatement =
                 "INSERT INTO DataRecords (rxbytes, txbytes, starttime, endtime, cell)" +
                 "   VALUES (%s, %s, %s, %s, %s);";
-
+        Log.i("test",""+getLastRowId("Datarecords"));
         execSQL(String.format(insertDataRecordStatement, data.getRxBytes(), data.getTxBytes(), data.getSessionStart(), data.getSessionEnd(), cellRecordId));
         return false;
     }
@@ -239,7 +274,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
         execSQL(insertCellStatement, cid, lac, mnc, mcc, technology);
         final int cellRecordId = getCellPrimaryKey(cellInfo);
-        Log.e("DB", "INSERTED CELL "+cellRecordId);
+        Log.e("DB", "INSERTED CELL " + cellRecordId);
 
         final String insertMeasurementStatement =
                 "INSERT INTO Measurements (cell, provider, accuracy, centroid)" +
@@ -291,7 +326,17 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             return -1;
         }
     }
-
+    private int getLastRowId(String tablename){
+        try {
+            Stmt stmt = mDb.prepare("SELECT MAX(id) FROM "+tablename);
+            stmt.step();
+            int lastid = Integer.parseInt(stmt.column_string(0));
+            return  lastid;
+        }catch (java.lang.Exception e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
     // https://www.gaia-gis.it/gaia-sins/spatialite-cookbook/html/ins-upd-del.html
 
     @Override
