@@ -15,7 +15,7 @@ public interface MobileNetworkDataCapable {
     public boolean insertRecord(Handover handover, int callId);
     public boolean insertRecord(LocationUpdate locationUpdate);
     public boolean insertRecord(Data data);
-    public boolean insertMeasurement(CellInfo cellInfo);
+    public boolean insertMeasurement(CellInfo cellInfo, String event);
 
     public void createTables();
 

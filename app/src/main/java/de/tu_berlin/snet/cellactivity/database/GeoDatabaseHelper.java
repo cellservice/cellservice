@@ -2,6 +2,7 @@ package de.tu_berlin.snet.cellactivity.database;
 
 import android.content.Context;
 import android.location.Location;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -29,7 +30,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
     private static final String TAG = "GEODBH";
     private static final String TAG_SL = TAG + "_JSQLITE";
-    private static String DB_PATH = "/data/data/de.tu_berlin.snet.cellactivity/databases";
+    private static String DB_PATH = Environment.getExternalStorageDirectory().getPath();
+    //private static String DB_PATH = "/data/data/de.tu_berlin.snet.cellactivity/databases";
     private static String DB_NAME = "spatial.sqlite";
     private Database mDb;
     private static GeoDatabaseHelper sInstance;
@@ -65,6 +67,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         try {
             //File sdcardDir = ""; // your sdcard path
             File spatialDbFile = new File(DB_PATH, DB_NAME);
+            Log.e("CREATE DATABASE FILE", "PATH: "+spatialDbFile);
 
             mDb = new jsqlite.Database();
             mDb.open(spatialDbFile.getAbsolutePath(), jsqlite.Constants.SQLITE_OPEN_READWRITE
@@ -100,7 +103,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     @Override
     public boolean insertRecord(Call call) {
         CellInfo cellInfo = call.getStartCell();
-        insertMeasurement(cellInfo);
+        insertMeasurement(cellInfo, "call");
 
         String direction = call.getDirection();
         String address = call.getAddress();
@@ -125,7 +128,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     @Override
     public boolean insertRecord(TextMessage textMessage) {
         CellInfo cellInfo = textMessage.getCell();
-        insertMeasurement(cellInfo);
+        insertMeasurement(cellInfo, "text message");
         int cellRecordId = getCellPrimaryKey(cellInfo);
         String insertTextMessageStatement =
                 "INSERT INTO TextMessages (direction, address, time, cell_id)" +
@@ -142,9 +145,9 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "INSERT INTO Handovers (startcell, endcell, time)" +
                 "   VALUES (%s, %s, %s);";
 
-        insertMeasurement(handover.getStartCell());
+        insertMeasurement(handover.getStartCell(), "handover start");
         int startCellId = getCellPrimaryKey(handover.getStartCell());
-        insertMeasurement(handover.getEndCell());
+        insertMeasurement(handover.getEndCell(), "handover end");
         int endCellid = getCellPrimaryKey(handover.getEndCell());
 
         // TODO: Divide timestamp by 1000
@@ -159,9 +162,9 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "INSERT INTO LocationUpdates (startcell, endcell, time)" +
                         "   VALUES (%s, %s, %s);";
 
-        insertMeasurement(locationUpdate.getStartCell());
+        insertMeasurement(locationUpdate.getStartCell(), "location update start");
         int startCellId = getCellPrimaryKey(locationUpdate.getStartCell());
-        insertMeasurement(locationUpdate.getEndCell());
+        insertMeasurement(locationUpdate.getEndCell(), "location update end");
         int endCellid = getCellPrimaryKey(locationUpdate.getEndCell());
 
         // TODO: Divide timestamp by 1000
@@ -172,7 +175,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     @Override
     public boolean insertRecord(Data data) {
         CellInfo cellInfo = data.getCell();
-        insertMeasurement(cellInfo);
+        insertMeasurement(cellInfo, "data");
 
         int cellRecordId = getCellPrimaryKey(cellInfo);
         String insertDataRecordStatement =
@@ -184,7 +187,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
 
     @Override
-    public boolean insertMeasurement(CellInfo cellInfo) {
+    public boolean insertMeasurement(final CellInfo cellInfo, final String event) {
         String insertCellStatement =
                 "INSERT INTO Cells (cellid, lac, mnc, mcc, technology)" +
                 "   SELECT %1$s, %2$s, %3$s, %4$s, %5$s" +
@@ -203,8 +206,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         Log.e("DB", "INSERTED CELL " + cellRecordId);
 
         final String insertMeasurementStatement =
-                "INSERT INTO Measurements (cell_id, provider, accuracy, centroid)" +
-                "   VALUES (%s, '%s', %s, GeomFromText('POINT(%s %s)', 4326));";
+                "INSERT INTO Measurements (cell_id, provider, accuracy, centroid, event, time)" +
+                "   VALUES (%s, '%s', %s, GeomFromText('POINT(%s %s)', 4326), '%s', %s);";
 
         // TODO: POSSIBLY BIG PROBLEM HERE WITH final
         // Maybe the Location Futures are being frozen when they actually should still be running
@@ -220,7 +223,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         double longitude = location.getLongitude();
                         float accuracy = location.getAccuracy();
                         String provider = location.getProvider();
-                        String statement = String.format(insertMeasurementStatement, cellRecordId, provider, accuracy, longitude, latitude);
+                        String statement = String.format(insertMeasurementStatement, cellRecordId, provider, accuracy, longitude, latitude, event, System.currentTimeMillis());
                         Log.e(TAG_SL, "Inserting measurement sql: "+statement);
                         execSQL(statement);
                     } catch (java.lang.Exception e) {
@@ -335,7 +338,9 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "	cell_id INTEGER REFERENCES Cells(id)," +
                         "	provider TEXT," +
-                        "   accuracy REAL" +
+                        "   accuracy REAL," +
+                        "   event TEXT," +
+                        "   time INTEGER" +
                         "	);";
 
         String addPointGeometryToMeasurementsTable =
