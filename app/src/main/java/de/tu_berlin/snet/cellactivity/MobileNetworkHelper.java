@@ -260,7 +260,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             if (mCurrentCall != null && mCurrentCall.getAddress().equals(number)) {
                 mCurrentCall.setEndTime(end);
                 for (CDRListener l : listeners) {
-                    l.onCallRecord(new Call(mCellInfoObserver.getCurrentCellInfo(), "incoming", number, new ArrayList<Handover>()));
+                    l.onCallRecord(mCurrentCall);
                 }
                 mCurrentCall = null;
             }
@@ -278,7 +278,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             if (mCurrentCall != null && mCurrentCall.getAddress().equals(number)) {
                 mCurrentCall.setEndTime(end);
                 for (CDRListener l : listeners) {
-                    l.onCallRecord(new Call(mCurrentCall.getStartCell(), "outgoing", number, mCurrentCall.getHandovers()));
+                    l.onCallRecord(mCurrentCall);
                 }
                 mCurrentCall = null;
             }
