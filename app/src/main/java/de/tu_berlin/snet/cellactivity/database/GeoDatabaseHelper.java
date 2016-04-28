@@ -208,7 +208,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
         // TODO: POSSIBLY BIG PROBLEM HERE WITH final
         // Maybe the Location Futures are being frozen when they actually should still be running
-        final ArrayList<Future<Location>> locationMeasurements = cellInfo.getLocations();
+        final ArrayList<Future<Location>> locationMeasurements = (ArrayList<Future<Location>>) cellInfo.getLocations().clone();
 
         new Thread(new Runnable() {
             @Override
