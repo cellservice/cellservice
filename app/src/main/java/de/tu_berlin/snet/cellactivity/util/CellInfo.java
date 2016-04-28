@@ -20,6 +20,15 @@ public class CellInfo {
         this.futureLocations = new ArrayList<Future<Location>>();
     }
 
+    public CellInfo(CellInfo cellInfo) {
+        this.cellId = cellInfo.getCellId();
+        this.lac = cellInfo.getLac();
+        this.mnc = cellInfo.getMnc();
+        this.mcc = cellInfo.getMcc();
+        this.connectionType = cellInfo.getConnectionType();
+        this.futureLocations = cellInfo.getLocations(); // Do they need to be cloned?
+    }
+
 
 
     private String resolveNetworkType(int networkType) {

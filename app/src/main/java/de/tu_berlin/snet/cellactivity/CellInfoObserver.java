@@ -123,7 +123,7 @@ public class CellInfoObserver {
     }
 
     private void setCurrentCellInfo(CellInfo cellInfo) { mCurrentCellInfo = cellInfo; }
-    public CellInfo getCurrentCellInfo() { return mCurrentCellInfo; }
+    public CellInfo getCurrentCellInfo() { return new CellInfo(mCurrentCellInfo); }
 
     public CellInfo getNewCellInfo() {
         try {
