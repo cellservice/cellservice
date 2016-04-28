@@ -55,7 +55,9 @@ public class LocationFuture implements Callable<Location>, LocationListener {
                 // wait for the done signal be triggered by the onLocationChanged method
                 // If it doesn't happen after 2 minutes, the original value (null) will be returned
                 freshLocationReady.await(2, TimeUnit.MINUTES);
-                Log.d("Async: Background", "Returning fresh "+provider+" location");
+                if(location != null) {
+                    Log.d("Async: Background", "Returning fresh " + provider + " location ("+location+")");
+                }
                 locationManager.removeUpdates(this);
                 return location;
             }
