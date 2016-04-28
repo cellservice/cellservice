@@ -2,22 +2,14 @@ package de.tu_berlin.snet.cellactivity.database;
 
 import android.content.Context;
 import android.location.Location;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Vector;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import de.tu_berlin.snet.cellactivity.R;
 import de.tu_berlin.snet.cellactivity.record.Call;
 import de.tu_berlin.snet.cellactivity.record.Data;
 import de.tu_berlin.snet.cellactivity.record.Handover;
@@ -31,7 +23,7 @@ import jsqlite.TableResult;
 
 /**
  * Created by Friedhelm Victor on 4/21/16.
- * This class should implement the Interface MobileNetworkDataWritable
+ * This class should implement the Interface MobileNetworkDataCapable
  */
 public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
@@ -39,7 +31,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     private static final String TAG_SL = TAG + "_JSQLITE";
     private static String DB_PATH = "/data/data/de.tu_berlin.snet.cellactivity/databases";
     private static String DB_NAME = "spatial.sqlite";
-    private Context context;
     private Database mDb;
     private static GeoDatabaseHelper sInstance;
 
@@ -128,7 +119,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         for(Handover handover : call.getHandovers()) {
             insertRecord(handover, callId);
         }
-
         return false;
     }
 
@@ -159,6 +149,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
         // TODO: Divide timestamp by 1000
         execSQL(String.format(insertHandoverStatement, startCellId, endCellid, handover.getTimestamp()));
+
         return false;
     }
 
@@ -187,7 +178,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         String insertDataRecordStatement =
                 "INSERT INTO DataRecords (rxbytes, txbytes, starttime, endtime, cell_id)" +
                 "   VALUES (%s, %s, %s, %s, %s);";
-
         execSQL(String.format(insertDataRecordStatement, data.getRxBytes(), data.getTxBytes(), data.getSessionStart(), data.getSessionEnd(), cellRecordId));
         return false;
     }
@@ -210,10 +200,10 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
         execSQL(insertCellStatement, cid, lac, mnc, mcc, technology);
         final int cellRecordId = getCellPrimaryKey(cellInfo);
-        Log.e("DB", "INSERTED CELL "+cellRecordId);
+        Log.e("DB", "INSERTED CELL " + cellRecordId);
 
         final String insertMeasurementStatement =
-                "INSERT INTO Measurements (cell, provider, accuracy, centroid)" +
+                "INSERT INTO Measurements (cell_id, provider, accuracy, centroid)" +
                 "   VALUES (%s, '%s', %s, GeomFromText('POINT(%s %s)', 4326));";
 
         // TODO: POSSIBLY BIG PROBLEM HERE WITH final
@@ -240,56 +230,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             }
         }).start();
         return true;
-    }
-
-    @Override
-    public ArrayList<Call> getCallRecords(Date day) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<Call> getCallRecords(Date from, Date to) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<TextMessage> getTextMessageRecords(Date day) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<TextMessage> getTextMessageRecords(Date from, Date to) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<Handover> getHandoverRecords(Date day) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<Handover> getHandoverRecords(Date from, Date to) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date day) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<Data> getDataRecords(Date day) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<Data> getDataRecords(Date from, Date to) {
-        return null;
     }
 
     private int getCellPrimaryKey(CellInfo cellInfo) {
@@ -410,5 +350,55 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         execSQL(createTextMessagesTable);
         execSQL(createMeasurementsTable);
         execSQL(addPointGeometryToMeasurementsTable);
+    }
+
+    @Override
+    public ArrayList<Call> getCallRecords(Date day) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Call> getCallRecords(Date from, Date to) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<TextMessage> getTextMessageRecords(Date day) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<TextMessage> getTextMessageRecords(Date from, Date to) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Handover> getHandoverRecords(Date day) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Handover> getHandoverRecords(Date from, Date to) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date day) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Data> getDataRecords(Date day) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Data> getDataRecords(Date from, Date to) {
+        return null;
     }
 }
