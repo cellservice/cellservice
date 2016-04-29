@@ -8,6 +8,7 @@ import android.util.Log;
 import java.io.File;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.Future;
 
@@ -17,6 +18,7 @@ import de.tu_berlin.snet.cellactivity.record.Handover;
 import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
 import de.tu_berlin.snet.cellactivity.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.util.FakeCellInfo;
 import jsqlite.Database;
 import jsqlite.Exception;
 import jsqlite.Stmt;
@@ -357,6 +359,22 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         execSQL(addPointGeometryToMeasurementsTable);
     }
 
+    public CellInfo getCellById(long id) {
+        String getCellByIdStatement =
+                "SELECT cellid, lac, mnc, mcc, technology" +
+                "   FROM Cells" +
+                "   WHERE id = %d;";
+        try {
+            TableResult result = mDb.get_table(String.format(getCellByIdStatement, id));
+            int[] fields = (int[]) result.rows.get(0);
+            return new CellInfo(fields[0], fields[1], fields[2], fields[3], fields[4]);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new FakeCellInfo();
+        }
+
+    }
+
     @Override
     public ArrayList<Call> getCallRecords(Date day) {
         return null;
@@ -399,7 +417,25 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
     @Override
     public ArrayList<Data> getDataRecords(Date day) {
-        return null;
+
+        ArrayList<Data> dataArrayList = new ArrayList<Data>();
+        final String selectDataRecordByDate =
+                "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords"+
+                "   WHERE date(starttime/1000, 'unixepoch', 'localtime') = "+ day.toString();
+        try {
+            TableResult result = mDb.get_table(selectDataRecordByDate);
+            Vector<long[]> rows = result.rows;
+            for (long[] row : rows) {
+                CellInfo cellInfo = getCellById(row[4]);
+                Data data = new Data(cellInfo, row[0], row[1], row[2], row[3]);
+                dataArrayList.add(data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectDataRecordByDate);
+        }
+
+        return dataArrayList;
     }
 
     @Override
