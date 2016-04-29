@@ -14,7 +14,7 @@ public class TextMessage extends AbstractCallOrText {
         setDirection(direction);
         setAddress(address);
         setCell(cell);
-        setTime(System.currentTimeMillis());
+        setTime(System.currentTimeMillis()/1000);
     }
 
     public TextMessage(CellInfo cell, String direction, String address, long time) {
@@ -37,8 +37,8 @@ public class TextMessage extends AbstractCallOrText {
     }
 
     public void setTime(long time) {
-        if(Check.Time.isBefore2016(time)) {
-            throw new IllegalArgumentException("time should be after 2015");
+        if(!Check.Time.isBetween2016and2025(time)) {
+            throw new IllegalArgumentException("not a valid epoch timestamp between 2016 and 2025");
         }
         this.time = time;
     }

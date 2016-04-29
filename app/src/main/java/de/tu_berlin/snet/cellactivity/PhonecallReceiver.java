@@ -75,7 +75,7 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
         switch (state) {
             case TelephonyManager.CALL_STATE_RINGING:
                 isIncoming = true;
-                callStartTime = System.currentTimeMillis();
+                callStartTime = System.currentTimeMillis()/1000;
                 savedNumber = number;
                 onIncomingCallReceived(context, number, callStartTime);
                 break;
@@ -83,13 +83,13 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
                 //Transition of ringing->offhook are pickups of incoming calls.  Nothing done on them
                 if(lastState != TelephonyManager.CALL_STATE_RINGING){
                     isIncoming = false;
-                    callStartTime = System.currentTimeMillis();
+                    callStartTime = System.currentTimeMillis()/1000;
                     onOutgoingCallStarted(context, savedNumber, callStartTime);
                 }
                 else
                 {
                     isIncoming = true;
-                    callStartTime = System.currentTimeMillis();
+                    callStartTime = System.currentTimeMillis()/1000;
                     onIncomingCallAnswered(context, savedNumber, callStartTime);
                 }
 
@@ -101,10 +101,10 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
                     onMissedCall(context, savedNumber, callStartTime);
                 }
                 else if(isIncoming){
-                    onIncomingCallEnded(context, savedNumber, callStartTime, System.currentTimeMillis());
+                    onIncomingCallEnded(context, savedNumber, callStartTime, System.currentTimeMillis()/1000);
                 }
                 else{
-                    onOutgoingCallEnded(context, savedNumber, callStartTime, System.currentTimeMillis());
+                    onOutgoingCallEnded(context, savedNumber, callStartTime, System.currentTimeMillis()/1000);
                 }
                 break;
         }

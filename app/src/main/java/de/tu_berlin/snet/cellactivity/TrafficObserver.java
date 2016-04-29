@@ -80,7 +80,7 @@ public class TrafficObserver {
                 if ((newRxBytes > 0 && getCurrentMobileRxBytes() > 0 && ((newRxBytes - getCurrentMobileRxBytes()) > 0)) ||
                         (newTxBytes > 0 && getCurrentMobileTxBytes() > 0 && ((newTxBytes - getCurrentMobileTxBytes()) > 0))) {
                     for (TrafficListener tl : listeners)
-                        tl.onBytesTransferred(newRxBytes - getCurrentMobileRxBytes(), newTxBytes - getCurrentMobileTxBytes(), System.currentTimeMillis());
+                        tl.onBytesTransferred(newRxBytes - getCurrentMobileRxBytes(), newTxBytes - getCurrentMobileTxBytes(), System.currentTimeMillis()/1000);
                 }
                 setCurrentMobileRxBytes(newRxBytes);
                 setCurrentMobileTxBytes(newTxBytes);

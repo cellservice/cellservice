@@ -225,7 +225,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         double longitude = location.getLongitude();
                         float accuracy = location.getAccuracy();
                         String provider = location.getProvider();
-                        String statement = String.format(insertMeasurementStatement, cellRecordId, provider, accuracy, longitude, latitude, event, System.currentTimeMillis());
+                        String statement = String.format(insertMeasurementStatement, cellRecordId, provider, accuracy, longitude, latitude, event, location.getTime()/1000);
                         Log.e(TAG_SL, "Inserting measurement sql: "+statement);
                         execSQL(statement);
                     } catch (java.lang.Exception e) {

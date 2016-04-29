@@ -24,7 +24,7 @@ public class Call extends AbstractCallOrText {
 
     // TODO: POSSIBLY REMOVE handovers FROM CONSTRUCTOR, AS IT WILL ALMOST ALWAYS BE EMPTY - OR CREATE ADDITIONAL CONSTRUCTOR
     public Call(CellInfo startCell, String direction, String address, ArrayList<Handover> handovers) {
-        this(startCell, direction, address, handovers, System.currentTimeMillis(), System.currentTimeMillis());
+        this(startCell, direction, address, handovers, System.currentTimeMillis()/1000, System.currentTimeMillis()/1000);
     }
 
     public CellInfo getStartCell() {
@@ -71,8 +71,8 @@ public class Call extends AbstractCallOrText {
     }
 
     public void setStartTime(long startTime) {
-        if (Check.Time.isBefore2016(startTime)) {
-            throw new IllegalArgumentException("startTime should be after 2015");
+        if (!Check.Time.isBetween2016and2025(startTime)) {
+            throw new IllegalArgumentException("not a valid epoch timestamp between 2016 and 2026");
         }
         this.startTime = startTime;
     }
@@ -89,6 +89,6 @@ public class Call extends AbstractCallOrText {
     }
 
     public void endCall() {
-        setEndTime(System.currentTimeMillis());
+        setEndTime(System.currentTimeMillis()/1000);
     }
 }

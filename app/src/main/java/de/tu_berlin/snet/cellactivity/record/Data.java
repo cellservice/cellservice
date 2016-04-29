@@ -12,7 +12,7 @@ public class Data {
     private CellInfo cell;
 
     public Data(CellInfo cell, long rxBytes, long txBytes) {
-        this(cell, rxBytes, txBytes, System.currentTimeMillis(), System.currentTimeMillis());
+        this(cell, rxBytes, txBytes, System.currentTimeMillis()/1000, System.currentTimeMillis()/1000);
     }
 
     public Data(CellInfo cell, long rxBytes, long txBytes, long sessionStart, long sessionEnd) {

@@ -9,7 +9,10 @@ public class Check {
 
     public static class Time {
         public static boolean isBefore2016(long timestamp) {
-            return timestamp < 1451606400000L;
+            return timestamp < 1451606400L;
+        }
+        public static boolean isBetween2016and2025(long timestamp) {
+            return timestamp > 1451606400L || timestamp < 1767229261L;
         }
         public static boolean isBefore(long timestampOne, long timestampTwo) {
             return timestampOne < timestampTwo;

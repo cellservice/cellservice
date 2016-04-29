@@ -1,6 +1,7 @@
 package de.tu_berlin.snet.cellactivity.record;
 
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.util.validation.Check;
 
 /**
  * Created by giraffe on 4/16/16.
@@ -40,8 +41,8 @@ abstract class AbstractCellChange {
     }
 
     public void setTimestamp(long timestamp) {
-        if (timestamp < 1451606400000L) {
-            throw new IllegalArgumentException("timestamp cannot be before 2016");
+        if (!Check.Time.isBetween2016and2025(timestamp)) {
+            throw new IllegalArgumentException("not a valid epoch timestamp between 2016 and 2025");
         }
         this.timestamp = timestamp;
     }
@@ -49,7 +50,7 @@ abstract class AbstractCellChange {
     public AbstractCellChange(CellInfo startCell, CellInfo endCell) {
         setStartCell(startCell);
         setEndCell(endCell);
-        setTimestamp(System.currentTimeMillis());
+        setTimestamp(System.currentTimeMillis()/1000);
     }
 
     public AbstractCellChange(CellInfo startCell, CellInfo endCell, long timestamp) {
