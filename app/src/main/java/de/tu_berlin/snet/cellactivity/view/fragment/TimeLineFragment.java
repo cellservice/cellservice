@@ -17,18 +17,25 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import de.tu_berlin.snet.cellactivity.R;
 import de.tu_berlin.snet.cellactivity.model.database.GeoDatabaseHelper;
 import de.tu_berlin.snet.cellactivity.model.record.Data;
 
 
 public class TimeLineFragment extends Fragment {
+    private final static String LOG_TAG = TimeLineFragment.class.getSimpleName();
 
-    Activity context;
+    @Bind(R.id.event_list)
+    LinearLayout eventListLayout;
+
+    private Activity context;
 
     public static TimeLineFragment newInstance(Date date) {
-        Log.e("LAYOUT", "TimeLineFragment constructor");
+        Log.e(LOG_TAG, "TimeLineFragment constructor");
         TimeLineFragment aFragment = new TimeLineFragment();
 
         Bundle args = new Bundle();
@@ -42,7 +49,9 @@ public class TimeLineFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         context = getActivity();
-        return inflater.inflate(R.layout.timeline_container, null);
+        View view = inflater.inflate(R.layout.timeline_container, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -52,14 +61,13 @@ public class TimeLineFragment extends Fragment {
     }
 
     private void rebuildDataTable() {
-        Log.e("LAYOUT", "rebuildDataTable");
+        Log.e(LOG_TAG, "rebuildDataTable");
         // get all the database entries
         GeoDatabaseHelper myDb = GeoDatabaseHelper.getInstance(context);
-        Log.e("LAYOUT", "the date: "+new Date(getArguments().getLong("date")));
+        Log.e(LOG_TAG, "the date: "+new Date(getArguments().getLong("date")));
         ArrayList<Data> databaseEntries = myDb.getDataRecords(new Date(getArguments().getLong("date")));
 
         // get the timeline container and inflater to add event items to it
-        LinearLayout eventListLayout = (LinearLayout) getView().findViewById(R.id.eventList);
         LayoutInflater li = (LayoutInflater) context.getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         int durationHeight = 100; // default duration height
 
@@ -80,7 +88,7 @@ public class TimeLineFragment extends Fragment {
             eventTimeBar.setBackgroundColor(Color.parseColor(hexColor));
 
             // Display the date as only hours and minutes
-            DateFormat df = new SimpleDateFormat("HH:mm");
+            DateFormat df = new SimpleDateFormat("HH:mm", Locale.getDefault());
             eventTime.setText(df.format(new java.util.Date(databaseEntries.get(i).getSessionStart() * 1000)));
 
             String eventTextBuilder = databaseEntries.get(i).toString();
