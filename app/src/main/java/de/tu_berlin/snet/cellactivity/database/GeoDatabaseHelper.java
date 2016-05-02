@@ -8,7 +8,6 @@ import android.util.Log;
 import java.io.File;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.Future;
 

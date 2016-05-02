@@ -3,7 +3,11 @@ package de.tu_berlin.snet.cellactivity.database;
 import java.sql.Date;
 import java.util.ArrayList;
 
-import de.tu_berlin.snet.cellactivity.record.*;
+import de.tu_berlin.snet.cellactivity.record.Call;
+import de.tu_berlin.snet.cellactivity.record.Data;
+import de.tu_berlin.snet.cellactivity.record.Handover;
+import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
+import de.tu_berlin.snet.cellactivity.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
 
 /**

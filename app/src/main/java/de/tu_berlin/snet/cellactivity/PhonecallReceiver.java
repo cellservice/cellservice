@@ -9,7 +9,6 @@ package de.tu_berlin.snet.cellactivity;
  * Once Android 5.0 has a larger Market Share, this should be reworked to use
  * PRECISE_CALL_STATE See http://stackoverflow.com/a/29490832 for details
  */
-import java.util.Date;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

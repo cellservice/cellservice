@@ -1,9 +1,6 @@
 package de.tu_berlin.snet.cellactivity;
 
 import android.location.Location;
-import android.location.LocationListener;
-import android.os.AsyncTask;
-import android.os.Bundle;
 import android.util.Log;
 
 import java.io.DataInputStream;
