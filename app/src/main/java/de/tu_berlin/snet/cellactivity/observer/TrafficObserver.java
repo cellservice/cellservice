@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.observer;
 
 import android.net.TrafficStats;
 

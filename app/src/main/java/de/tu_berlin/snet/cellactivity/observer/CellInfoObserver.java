@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.observer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.tu_berlin.snet.cellactivity.CellService;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
 import de.tu_berlin.snet.cellactivity.util.FakeCellInfo;
 

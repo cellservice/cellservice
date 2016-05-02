@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.observer;
 
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import de.tu_berlin.snet.cellactivity.CellService;
 
 public class OutgoingSMSObserver extends ContentObserver {
     public interface OutgoingSMSListener {
