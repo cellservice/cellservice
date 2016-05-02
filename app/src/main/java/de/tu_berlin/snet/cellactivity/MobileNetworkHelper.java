@@ -26,16 +26,6 @@ import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
 import de.tu_berlin.snet.cellactivity.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
 
-interface CDRListener {
-    void onDataSession(Data data);
-
-    void onCallRecord(Call call);
-
-    void onTextMessage(TextMessage textMessage);
-
-    void onLocationUpdate(LocationUpdate locationUpdate);
-}
-
 public class MobileNetworkHelper extends ContextWrapper {
 
     // *********************************************************************************************
