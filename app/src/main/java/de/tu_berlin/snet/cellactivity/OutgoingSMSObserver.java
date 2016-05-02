@@ -13,11 +13,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-interface OutgoingSMSListener {
-    void onSMSSent(String receiverAddress);
-}
-
 public class OutgoingSMSObserver extends ContentObserver {
+    public interface OutgoingSMSListener {
+        void onSMSSent(String receiverAddress);
+    }
 
     private static boolean NOTIFY_LISTENERS = true;
     private static boolean DONT_NOTIFY_LISTENERS = false;

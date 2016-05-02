@@ -24,13 +24,12 @@ import de.tu_berlin.snet.cellactivity.util.FakeCellInfo;
  * listen to Location Updates (triggered when the LAC between Cells change)
  */
 
-// An interface to be implemented by event listeners
-interface CellInfoListener {
-    void onCellLocationChanged(CellInfo oldCell, CellInfo newCell);
-    void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
-}
-
 public class CellInfoObserver {
+    public interface CellInfoListener {
+        void onCellLocationChanged(CellInfo oldCell, CellInfo newCell);
+        void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
+    }
+
     private static CellInfoObserver instance;
 
     private List<CellInfoListener> listeners = new ArrayList<CellInfoListener>();

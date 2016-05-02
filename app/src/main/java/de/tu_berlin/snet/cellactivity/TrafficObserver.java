@@ -1,6 +1,5 @@
 package de.tu_berlin.snet.cellactivity;
 
-
 import android.net.TrafficStats;
 
 import java.util.ArrayList;
@@ -8,12 +7,10 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-// An interface to be implemented by event listeners
-interface TrafficListener {
-    void onBytesTransferred(long rxBytes, long txBytes, long timestamp);
-}
-
 public class TrafficObserver {
+    public interface TrafficListener {
+        void onBytesTransferred(long rxBytes, long txBytes, long timestamp);
+    }
 
     private List<TrafficListener> listeners = new ArrayList<TrafficListener>();
     private long mCurrentMobileRxBytes = TrafficStats.getMobileRxBytes();

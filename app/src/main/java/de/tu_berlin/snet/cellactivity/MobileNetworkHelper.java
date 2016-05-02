@@ -165,7 +165,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     // *********************************************************************************************
     // listener logic ******************************************************************************
 
-    private final class TrafficStateListener implements TrafficListener {
+    private final class TrafficStateListener implements TrafficObserver.TrafficListener {
         @Override
         public void onBytesTransferred(long rxBytes, long txBytes, long timestamp) {
             if (mCurrentDataRecord == null) {
@@ -179,7 +179,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         }
     }
 
-    private final class CellInfoStateListener implements CellInfoListener {
+    private final class CellInfoStateListener implements CellInfoObserver.CellInfoListener {
         @Override
         public void onCellLocationChanged(CellInfo oldCell, CellInfo newCell) {
             if (mCurrentDataRecord != null) {
@@ -207,7 +207,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         }
     }
 
-    private final class OutgoingSMSStateListener implements OutgoingSMSListener {
+    private final class OutgoingSMSStateListener implements OutgoingSMSObserver.OutgoingSMSListener {
         @Override
         public void onSMSSent(String receiverAddress) {
             CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
