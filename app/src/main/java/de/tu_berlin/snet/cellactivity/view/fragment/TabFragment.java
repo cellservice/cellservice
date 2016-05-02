@@ -13,91 +13,81 @@ import android.view.ViewGroup;
 import java.sql.Date;
 import java.util.ArrayList;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import de.tu_berlin.snet.cellactivity.R;
 import de.tu_berlin.snet.cellactivity.model.database.GeoDatabaseHelper;
 
 public class TabFragment extends Fragment {
+    @Bind(R.id.tabs)
+    TabLayout tabLayout;
 
-    public static TabLayout mTabLayout;
-    public static ViewPager mViewPager;
+    @Bind(R.id.viewpager)
+    ViewPager viewPager;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        /**
-         *Inflate timelines_tab_layout and setup Views.
-         */
-        View tab_layout =  inflater.inflate(R.layout.timelines_tab_layout,null);
-        mTabLayout = (TabLayout) tab_layout.findViewById(R.id.tabs);
-        mViewPager = (ViewPager) tab_layout.findViewById(R.id.viewpager);
-
-        /**
-         *Set an Apater for the View Pager
-         */
+        View tab_layout = inflater.inflate(R.layout.timelines_tab_layout, container, false);
+        ButterKnife.bind(this, tab_layout);
 
         GeoDatabaseHelper myDb = GeoDatabaseHelper.getInstance(getActivity());
         FragmentTimelineTabs tabs = new FragmentTimelineTabs(getChildFragmentManager());
 
         for (Date date : myDb.getLastThreeDates()) tabs.addTimeline(date);
 
-        mViewPager.setAdapter(tabs);
+        viewPager.setAdapter(tabs);
 
         /**
          * Now , this is a workaround ,
          * The setupWithViewPager dose't works without the runnable .
          * Maybe a Support Library Bug .
          */
-
-        mTabLayout.post(new Runnable() {
+        tabLayout.post(new Runnable() {
             @Override
             public void run() {
-                mTabLayout.setupWithViewPager(mViewPager);
+                tabLayout.setupWithViewPager(viewPager);
             }
         });
 
         return tab_layout;
-
     }
 
+    class FragmentTimelineTabs extends FragmentPagerAdapter {
 
-
-    class FragmentTimelineTabs extends FragmentPagerAdapter{
-
-        private final ArrayList<Date> mTabDates = new ArrayList<Date>();
-        private final ArrayList<Fragment> mTabFragments = new ArrayList<>();
+        private final ArrayList<Date> tabDates = new ArrayList<>();
+        private final ArrayList<Fragment> tabFragments = new ArrayList<>();
 
         public FragmentTimelineTabs(FragmentManager fm) {
             super(fm);
         }
 
         public void addTimeline(Date date) {
-            mTabDates.add(date);
-            mTabFragments.add(TimeLineFragment.newInstance(date));
+            tabDates.add(date);
+            tabFragments.add(TimeLineFragment.newInstance(date));
             notifyDataSetChanged();
         }
 
         /**
          * Return fragment with respect to Position .
          */
-
         @Override
         public Fragment getItem(int position)
         {
-            return mTabFragments.get(position);
+            return tabFragments.get(position);
         }
 
         @Override
         public int getCount() {
-            return mTabDates.size();
+            return tabDates.size();
         }
 
         /**
          * This method returns the title of the tab according to the position.
          */
-
         @Override
         public CharSequence getPageTitle(int position) {
-            return mTabDates.get(position).toString();
+            return tabDates.get(position).toString();
         }
     }
 
