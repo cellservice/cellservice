@@ -83,6 +83,6 @@ public class Data {
 
     @Override
     public String toString() {
-        return "Data("+this.getCell()+","+getRxBytes()+","+getTxBytes()+","+getSessionStart()+","+getSessionEnd()+")";
+        return "Data(down: "+getRxBytes()+" Bytes, up: "+getTxBytes()+" Bytes)";
     }
 }

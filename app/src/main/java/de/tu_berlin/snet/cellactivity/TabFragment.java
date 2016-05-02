@@ -10,7 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.sql.Date;
 import java.util.ArrayList;
+
+import de.tu_berlin.snet.cellactivity.database.GeoDatabaseHelper;
 
 public class TabFragment extends Fragment {
 
@@ -31,10 +34,10 @@ public class TabFragment extends Fragment {
          *Set an Apater for the View Pager
          */
 
-        DatabaseHelper myDb = DatabaseHelper.getInstance(getActivity());
+        GeoDatabaseHelper myDb = GeoDatabaseHelper.getInstance(getActivity());
         FragmentTimelineTabs tabs = new FragmentTimelineTabs(getChildFragmentManager());
 
-        for (String date : myDb.getLastThreeDates()) tabs.addTimeline(date);
+        for (Date date : myDb.getLastThreeDates()) tabs.addTimeline(date);
 
         mViewPager.setAdapter(tabs);
 
@@ -59,15 +62,15 @@ public class TabFragment extends Fragment {
 
     class FragmentTimelineTabs extends FragmentPagerAdapter{
 
-        private final ArrayList<CharSequence> mTabTitles = new ArrayList<>();
+        private final ArrayList<Date> mTabDates = new ArrayList<Date>();
         private final ArrayList<Fragment> mTabFragments = new ArrayList<>();
 
         public FragmentTimelineTabs(FragmentManager fm) {
             super(fm);
         }
 
-        public void addTimeline(String date) {
-            mTabTitles.add(date);
+        public void addTimeline(Date date) {
+            mTabDates.add(date);
             mTabFragments.add(TimeLineFragment.newInstance(date));
             notifyDataSetChanged();
         }
@@ -84,7 +87,7 @@ public class TabFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return mTabTitles.size();
+            return mTabDates.size();
         }
 
         /**
@@ -93,7 +96,7 @@ public class TabFragment extends Fragment {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return mTabTitles.get(position);
+            return mTabDates.get(position).toString();
         }
     }
 

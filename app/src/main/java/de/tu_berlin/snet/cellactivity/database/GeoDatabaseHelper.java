@@ -366,13 +366,35 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "   WHERE id = %d;";
         try {
             TableResult result = mDb.get_table(String.format(getCellByIdStatement, id));
-            int[] fields = (int[]) result.rows.get(0);
-            return new CellInfo(fields[0], fields[1], fields[2], fields[3], fields[4]);
+            String[] fields = (String[]) result.rows.get(0);
+            return new CellInfo(Integer.parseInt(fields[0]), Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
         } catch (Exception e) {
             e.printStackTrace();
             return new FakeCellInfo();
         }
+    }
 
+    public Date[] getLastThreeDates() {
+        String threeDatesStatement =
+                "SELECT DISTINCT strftime('%s',date(starttime, 'unixepoch', 'localtime')) AS date" +
+                "   FROM (SELECT starttime FROM Calls UNION" +
+                "         SELECT starttime FROM DataRecords UNION" +
+                "         SELECT time AS starttime FROM Handovers UNION" +
+                "         SELECT time AS starttime FROM LocationUpdates UNION" +
+                "         SELECT time AS starttime FROM TextMessages)" +
+                "   AS events" +
+                "   ORDER BY date DESC" +
+                "   LIMIT 3;";
+        try {
+            TableResult tableResult = mDb.get_table(threeDatesStatement);
+            Vector<String[]> rows = tableResult.rows;
+            Date[] result = new Date[rows.size()];
+            for(int i = 0; i<rows.size(); i++) result[i] = new Date(Long.valueOf(rows.get(i)[0])*1000);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Date[] {};
+        }
     }
 
     @Override
@@ -421,13 +443,13 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
                 "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords"+
-                "   WHERE date(starttime/1000, 'unixepoch', 'localtime') = "+ day.toString();
+                "   WHERE date(starttime, 'unixepoch', 'localtime') = '"+ day.toString() + "'";
         try {
             TableResult result = mDb.get_table(selectDataRecordByDate);
-            Vector<long[]> rows = result.rows;
-            for (long[] row : rows) {
-                CellInfo cellInfo = getCellById(row[4]);
-                Data data = new Data(cellInfo, row[0], row[1], row[2], row[3]);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                CellInfo cellInfo = getCellById(Long.parseLong(row[4]));
+                Data data = new Data(cellInfo, Long.parseLong(row[0]), Long.parseLong(row[1]), Long.parseLong(row[2]), Long.parseLong(row[3]));
                 dataArrayList.add(data);
             }
         } catch (Exception e) {
