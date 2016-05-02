@@ -1,9 +1,9 @@
 package de.tu_berlin.snet.cellactivity;
 
-import de.tu_berlin.snet.cellactivity.record.Call;
-import de.tu_berlin.snet.cellactivity.record.Data;
-import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
-import de.tu_berlin.snet.cellactivity.record.TextMessage;
+import de.tu_berlin.snet.cellactivity.model.record.Call;
+import de.tu_berlin.snet.cellactivity.model.record.Data;
+import de.tu_berlin.snet.cellactivity.model.record.LocationUpdate;
+import de.tu_berlin.snet.cellactivity.model.record.TextMessage;
 
 /**
  *

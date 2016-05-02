@@ -19,11 +19,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import de.tu_berlin.snet.cellactivity.record.Call;
-import de.tu_berlin.snet.cellactivity.record.Data;
-import de.tu_berlin.snet.cellactivity.record.Handover;
-import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
-import de.tu_berlin.snet.cellactivity.record.TextMessage;
+import de.tu_berlin.snet.cellactivity.model.record.Call;
+import de.tu_berlin.snet.cellactivity.model.record.Data;
+import de.tu_berlin.snet.cellactivity.model.record.Handover;
+import de.tu_berlin.snet.cellactivity.model.record.LocationUpdate;
+import de.tu_berlin.snet.cellactivity.model.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
 
 public class MobileNetworkHelper extends ContextWrapper {

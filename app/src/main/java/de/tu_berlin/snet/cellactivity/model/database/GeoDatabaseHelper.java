@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity.database;
+package de.tu_berlin.snet.cellactivity.model.database;
 
 import android.content.Context;
 import android.location.Location;
@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.Future;
 
-import de.tu_berlin.snet.cellactivity.record.Call;
-import de.tu_berlin.snet.cellactivity.record.Data;
-import de.tu_berlin.snet.cellactivity.record.Handover;
-import de.tu_berlin.snet.cellactivity.record.LocationUpdate;
-import de.tu_berlin.snet.cellactivity.record.TextMessage;
+import de.tu_berlin.snet.cellactivity.model.record.Call;
+import de.tu_berlin.snet.cellactivity.model.record.Data;
+import de.tu_berlin.snet.cellactivity.model.record.Handover;
+import de.tu_berlin.snet.cellactivity.model.record.LocationUpdate;
+import de.tu_berlin.snet.cellactivity.model.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.util.CellInfo;
 import de.tu_berlin.snet.cellactivity.util.FakeCellInfo;
 import jsqlite.Database;

@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity.record;
+package de.tu_berlin.snet.cellactivity.model.record;
 
 /**
  * Created by giraffe on 4/17/16.

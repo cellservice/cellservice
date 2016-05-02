@@ -14,7 +14,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 
 import de.tu_berlin.snet.cellactivity.R;
-import de.tu_berlin.snet.cellactivity.database.GeoDatabaseHelper;
+import de.tu_berlin.snet.cellactivity.model.database.GeoDatabaseHelper;
 
 public class TabFragment extends Fragment {
 

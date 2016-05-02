@@ -19,8 +19,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import de.tu_berlin.snet.cellactivity.R;
-import de.tu_berlin.snet.cellactivity.database.GeoDatabaseHelper;
-import de.tu_berlin.snet.cellactivity.record.Data;
+import de.tu_berlin.snet.cellactivity.model.database.GeoDatabaseHelper;
+import de.tu_berlin.snet.cellactivity.model.record.Data;
 
 
 public class TimeLineFragment extends Fragment {
