@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.view.fragment;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,6 +18,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import de.tu_berlin.snet.cellactivity.R;
 import de.tu_berlin.snet.cellactivity.database.GeoDatabaseHelper;
 import de.tu_berlin.snet.cellactivity.record.Data;
 

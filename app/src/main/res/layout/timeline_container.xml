@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
 
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="de.tu_berlin.snet.cellactivity.MainActivity"
+    tools:context=".view.activty.MainActivity"
     android:background="#222222">
 
     <ScrollView

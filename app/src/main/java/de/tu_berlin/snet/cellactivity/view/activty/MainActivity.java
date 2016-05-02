@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.view.activty;
 
 import android.app.ActivityManager;
 import android.content.Context;
@@ -13,6 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import de.tu_berlin.snet.cellactivity.CellService;
+import de.tu_berlin.snet.cellactivity.R;
+import de.tu_berlin.snet.cellactivity.view.fragment.TabFragment;
 
 public class MainActivity extends AppCompatActivity {
     DrawerLayout mDrawerLayout;

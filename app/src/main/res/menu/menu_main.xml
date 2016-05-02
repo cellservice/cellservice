@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="de.tu_berlin.snet.cellactivity.MainActivity">
+    tools:context=".view.activty.MainActivity">
     <item
         android:id="@+id/action_start_service"
         android:orderInCategory="100"

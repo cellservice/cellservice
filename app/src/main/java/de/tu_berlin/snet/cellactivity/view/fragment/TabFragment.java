@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.view.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import java.sql.Date;
 import java.util.ArrayList;
 
+import de.tu_berlin.snet.cellactivity.R;
 import de.tu_berlin.snet.cellactivity.database.GeoDatabaseHelper;
 
 public class TabFragment extends Fragment {
