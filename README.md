@@ -1,4 +1,4 @@
-# Android Cell Activity recognizer
+# Android Cell Service
 
 
 ### What it does
