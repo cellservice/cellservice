@@ -26,8 +26,9 @@ import de.tu_berlin.snet.cellactivity.model.record.LocationUpdate;
 import de.tu_berlin.snet.cellactivity.model.record.TextMessage;
 import de.tu_berlin.snet.cellactivity.observer.CellInfoObserver;
 import de.tu_berlin.snet.cellactivity.observer.OutgoingSMSObserver;
+import de.tu_berlin.snet.cellactivity.observer.PhonecallReceiver;
 import de.tu_berlin.snet.cellactivity.observer.TrafficObserver;
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.model.record.CellInfo;
 
 public class MobileNetworkHelper extends ContextWrapper {
 

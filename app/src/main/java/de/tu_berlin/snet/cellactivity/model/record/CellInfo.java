@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity.util;
+package de.tu_berlin.snet.cellactivity.model.record;
 
 
 import android.location.Location;

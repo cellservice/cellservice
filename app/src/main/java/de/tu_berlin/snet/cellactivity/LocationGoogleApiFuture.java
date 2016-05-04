@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Callable;
 
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.model.record.CellInfo;
 
 /**
  * Created by ashish on 21.03.16.

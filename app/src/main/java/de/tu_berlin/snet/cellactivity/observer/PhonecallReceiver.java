@@ -1,4 +1,4 @@
-package de.tu_berlin.snet.cellactivity;
+package de.tu_berlin.snet.cellactivity.observer;
 
 /**
  * Copied from http://stackoverflow.com/a/15564021 on 4/18/16.

@@ -1,6 +1,6 @@
 package de.tu_berlin.snet.cellactivity.util.validation;
 
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.model.record.CellInfo;
 
 /**
  * Created by giraffe on 4/17/16.

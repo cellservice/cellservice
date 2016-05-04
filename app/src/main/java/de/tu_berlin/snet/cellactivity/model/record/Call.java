@@ -2,7 +2,6 @@ package de.tu_berlin.snet.cellactivity.model.record;
 
 import java.util.ArrayList;
 
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
 import de.tu_berlin.snet.cellactivity.util.validation.Check;
 
 /**

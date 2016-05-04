@@ -8,7 +8,7 @@ import de.tu_berlin.snet.cellactivity.model.record.Data;
 import de.tu_berlin.snet.cellactivity.model.record.Handover;
 import de.tu_berlin.snet.cellactivity.model.record.LocationUpdate;
 import de.tu_berlin.snet.cellactivity.model.record.TextMessage;
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
+import de.tu_berlin.snet.cellactivity.model.record.CellInfo;
 
 /**
  * Created by Friedhelm Victor on 4/21/16.

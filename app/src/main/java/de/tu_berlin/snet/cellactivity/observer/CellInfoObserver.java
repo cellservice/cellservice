@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.tu_berlin.snet.cellactivity.CellService;
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
-import de.tu_berlin.snet.cellactivity.util.FakeCellInfo;
+import de.tu_berlin.snet.cellactivity.model.record.CellInfo;
+import de.tu_berlin.snet.cellactivity.model.FakeCellInfo;
 
 /**
  * Created by Friedhelm Victor on 3/29/16.

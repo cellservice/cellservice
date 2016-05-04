@@ -1,7 +1,5 @@
 package de.tu_berlin.snet.cellactivity.model.record;
 
-import de.tu_berlin.snet.cellactivity.util.CellInfo;
-
 /**
  * Created by giraffe on 4/16/16.
  */
