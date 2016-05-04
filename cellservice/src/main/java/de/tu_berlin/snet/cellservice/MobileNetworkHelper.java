@@ -29,6 +29,7 @@ import de.tu_berlin.snet.cellservice.observer.OutgoingSMSObserver;
 import de.tu_berlin.snet.cellservice.observer.PhonecallReceiver;
 import de.tu_berlin.snet.cellservice.observer.TrafficObserver;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
+import de.tu_berlin.snet.cellservice.util.Anonymizer;
 
 public class MobileNetworkHelper extends ContextWrapper {
 
@@ -217,7 +218,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
             cell = addGPSLocation(addNetworkLocation(cell));
             for (CDRListener l : listeners) {
-                l.onTextMessage(new TextMessage(cell, "outgoing", receiverAddress));
+                l.onTextMessage(new TextMessage(cell, "outgoing", Anonymizer.anonymize(receiverAddress)));
             }
         }
     }
@@ -231,7 +232,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 cell = addGPSLocation(addNetworkLocation(cell));
                 // TODO: ACQUIRE THE NUMBER THE TEXT MESSAGE HAS BEEN RECEIVED FROM, INSTEAD of "secret"
                 for (CDRListener l : listeners) {
-                    l.onTextMessage(new TextMessage(cell, "incoming", "secret"));
+                    l.onTextMessage(new TextMessage(cell, "incoming", Anonymizer.anonymize("secret")));
                 }
             }
         }
@@ -253,6 +254,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         protected void onIncomingCallEnded(Context ctx, String number, long start, long end) {
             if (mCurrentCall != null && mCurrentCall.getAddress().equals(number)) {
                 mCurrentCall.setEndTime(end);
+                mCurrentCall.setAddress(Anonymizer.anonymize(mCurrentCall.getAddress()));
                 for (CDRListener l : listeners) {
                     l.onCallRecord(mCurrentCall);
                 }
@@ -271,6 +273,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         protected void onOutgoingCallEnded(Context ctx, String number, long start, long end) {
             if (mCurrentCall != null && mCurrentCall.getAddress().equals(number)) {
                 mCurrentCall.setEndTime(end);
+                mCurrentCall.setAddress(Anonymizer.anonymize(mCurrentCall.getAddress()));
                 for (CDRListener l : listeners) {
                     l.onCallRecord(mCurrentCall);
                 }
