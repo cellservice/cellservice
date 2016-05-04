@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CellActivity.iml" filepath="$PROJECT_DIR$/CellActivity.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CellService.iml" filepath="$PROJECT_DIR$/CellService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cellservice/cellservice.iml" filepath="$PROJECT_DIR$/cellservice/cellservice.iml" />
     </modules>
   </component>
 </project>

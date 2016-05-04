@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="colorPrimary">#FFAF0913</color>
-    <color name="colorPrimaryDark">#FF222222</color>
-    <color name="colorSecondaryDark">#FF333333</color>
-    <color name="redStatusBar">#CCAF0913</color>
-    <color name="colorText">#FFFFFFFF</color>
-</resources>
