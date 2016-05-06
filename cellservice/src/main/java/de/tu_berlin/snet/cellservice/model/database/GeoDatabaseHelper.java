@@ -135,7 +135,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                 "INSERT INTO TextMessages (direction, address, time, cell_id)" +
                 "   VALUES ('%s', '%s', %s, %s);";
 
-        // TODO: Divide timestamp by 1000
         execSQL(String.format(insertTextMessageStatement, textMessage.getDirection(), textMessage.getAddress(), textMessage.getTime(), cellRecordId));
         return false;
     }
@@ -143,16 +142,15 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     @Override
     public boolean insertRecord(Handover handover, int callId) {
         String insertHandoverStatement =
-                "INSERT INTO Handovers (startcell, endcell, time)" +
-                "   VALUES (%s, %s, %s);";
+                "INSERT INTO Handovers (call_id, startcell, endcell, time)" +
+                "   VALUES (%s, %s, %s, %s);";
 
         insertMeasurement(handover.getStartCell(), "handover start");
         int startCellId = getCellPrimaryKey(handover.getStartCell());
         insertMeasurement(handover.getEndCell(), "handover end");
         int endCellid = getCellPrimaryKey(handover.getEndCell());
 
-        // TODO: Divide timestamp by 1000
-        execSQL(String.format(insertHandoverStatement, startCellId, endCellid, handover.getTimestamp()));
+        execSQL(String.format(insertHandoverStatement, callId, startCellId, endCellid, handover.getTimestamp()));
 
         return false;
     }
@@ -168,7 +166,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         insertMeasurement(locationUpdate.getEndCell(), "location update end");
         int endCellid = getCellPrimaryKey(locationUpdate.getEndCell());
 
-        // TODO: Divide timestamp by 1000
         execSQL(String.format(insertLocationUpdateStatement, startCellId, endCellid, locationUpdate.getTimestamp()));
         return false;
     }
@@ -282,66 +279,67 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         String createCellsTable =
                 "CREATE TABLE IF NOT EXISTS Cells (" +
                         "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   cellid INTEGER," +
-                        "   lac INTEGER," +
-                        "   mnc INTEGER," +
-                        "   mcc INTEGER," +
-                        "   technology INTEGER" +
-                        "   );";
-
-        String createLocationUpdatesTable =
-                "CREATE TABLE IF NOT EXISTS LocationUpdates (" +
-                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   startcell REFERENCES Cells(id)," +
-                        "   endcell REFERENCES Cells(id)," +
-                        "   time INTEGER" +
-                        "   );";
-
-        String createHandoversTable =
-                "CREATE TABLE IF NOT EXISTS Handovers (" +
-                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	startcell REFERENCES Cells(id)," +
-                        "	endcell REFERENCES Cells(id)," +
-                        "   time INTEGER" +
-                        "	)";
-
-        String createDataEventsTable =
-                "CREATE TABLE IF NOT EXISTS DataRecords (" +
-                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   rxbytes INTEGER," +
-                        "   txbytes INTEGER," +
-                        "   starttime INTEGER," +
-                        "   endtime INTEGER," +
-                        "   cell_id INTEGER REFERENCES Cells(id)" +
+                        "   cellid INTEGER NOT NULL," +
+                        "   lac INTEGER NOT NULL," +
+                        "   mnc INTEGER NOT NULL," +
+                        "   mcc INTEGER NOT NULL," +
+                        "   technology INTEGER NOT NULL" +
                         "   );";
 
         String createCallsTable =
                 "CREATE TABLE IF NOT EXISTS Calls (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	direction TEXT," +
-                        "	address TEXT," +
-                        "	starttime INTEGER," +
-                        "	endtime INTEGER," +
-                        "	startcell INTEGER REFERENCES Cells(id)" +
+                        "	direction TEXT NOT NULL," +
+                        "	address TEXT NOT NULL," +
+                        "	starttime INTEGER NOT NULL," +
+                        "	endtime INTEGER NOT NULL," +
+                        "	startcell INTEGER NOT NULL REFERENCES Cells(id)" +
                         "	);";
+
+        String createHandoversTable =
+                "CREATE TABLE IF NOT EXISTS Handovers (" +
+                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "   call_id INTEGER NOT NULL REFERENCES Calls(id)," +
+                        "	startcell NOT NULL REFERENCES Cells(id)," +
+                        "	endcell NOT NULL REFERENCES Cells(id)," +
+                        "   time INTEGER NOT NULL" +
+                        "	)";
+
+        String createLocationUpdatesTable =
+                "CREATE TABLE IF NOT EXISTS LocationUpdates (" +
+                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "   startcell NOT NULL REFERENCES Cells(id)," +
+                        "   endcell NOT NULL REFERENCES Cells(id)," +
+                        "   time INTEGER NOT NULL" +
+                        "   );";
+
+        String createDataEventsTable =
+                "CREATE TABLE IF NOT EXISTS DataRecords (" +
+                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "   rxbytes INTEGER NOT NULL," +
+                        "   txbytes INTEGER NOT NULL," +
+                        "   starttime INTEGER NOT NULL," +
+                        "   endtime INTEGER NOT NULL," +
+                        "   cell_id INTEGER NOT NULL REFERENCES Cells(id)" +
+                        "   );";
 
         String createTextMessagesTable =
                 "CREATE TABLE IF NOT EXISTS TextMessages (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	direction TEXT," +
-                        "	address TEXT," +
-                        "	time INTEGER," +
-                        "	cell_id INTEGER REFERENCES Cells(id)" +
+                        "	direction TEXT NOT NULL," +
+                        "	address TEXT NOT NULL," +
+                        "	time INTEGER NOT NULL," +
+                        "	cell_id INTEGER NOT NULL REFERENCES Cells(id)" +
                         "	);";
 
         String createMeasurementsTable =
                 "CREATE TABLE IF NOT EXISTS Measurements (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	cell_id INTEGER REFERENCES Cells(id)," +
-                        "	provider TEXT," +
-                        "   accuracy REAL," +
-                        "   event TEXT," +
-                        "   time INTEGER" +
+                        "	cell_id INTEGER NOT NULL REFERENCES Cells(id)," +
+                        "	provider TEXT NOT NULL," +
+                        "   accuracy REAL NOT NULL," +
+                        "   event TEXT NOT NULL," +
+                        "   time INTEGER NOT NULL" +
                         "	);";
 
         String addPointGeometryToMeasurementsTable =
@@ -349,10 +347,10 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
 
         execSQL(createCellsTable);
-        execSQL(createLocationUpdatesTable);
-        execSQL(createHandoversTable);
-        execSQL(createDataEventsTable);
         execSQL(createCallsTable);
+        execSQL(createHandoversTable);
+        execSQL(createLocationUpdatesTable);
+        execSQL(createDataEventsTable);
         execSQL(createTextMessagesTable);
         execSQL(createMeasurementsTable);
         execSQL(addPointGeometryToMeasurementsTable);
