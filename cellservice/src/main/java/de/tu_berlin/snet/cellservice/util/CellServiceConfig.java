@@ -14,7 +14,7 @@ public class CellServiceConfig {
 
 
     public static CellServiceConfig getInstance() {
-        if (instance == null) return instance;
+        if (instance != null) return instance;
         else {
             CellServiceConfig config = new CellServiceConfig();
             config.setPhoneNumberAnonymizationTechnique(Anonymizer.RANDOMIZE);
