@@ -14,27 +14,29 @@ import de.tu_berlin.snet.cellservice.model.record.CellInfo;
  * Created by Friedhelm Victor on 4/21/16.
  */
 public interface MobileNetworkDataCapable {
-    public boolean insertRecord(Call call);
-    public boolean insertRecord(TextMessage textMessage);
-    public boolean insertRecord(Handover handover, int callId);
-    public boolean insertRecord(LocationUpdate locationUpdate);
-    public boolean insertRecord(Data data);
-    public boolean insertMeasurement(CellInfo cellInfo, String event);
+    boolean insertRecord(Call call);
+    boolean insertRecord(TextMessage textMessage);
+    boolean insertRecord(Handover handover, int callId);
+    boolean insertRecord(LocationUpdate locationUpdate);
+    boolean insertRecord(Data data);
+    boolean insertMeasurement(CellInfo cellInfo, String event);
 
-    public void createTables();
+    void createTables();
 
-    public ArrayList<Call> getCallRecords(Date day);
-    public ArrayList<Call> getCallRecords(Date from, Date to);
+    Date[] getLastThreeDates();
 
-    public ArrayList<TextMessage> getTextMessageRecords(Date day);
-    public ArrayList<TextMessage> getTextMessageRecords(Date from, Date to);
+    ArrayList<Call> getCallRecords(Date day);
+    ArrayList<Call> getCallRecords(Date from, Date to);
 
-    public ArrayList<Handover> getHandoverRecords(Date day);
-    public ArrayList<Handover> getHandoverRecords(Date from, Date to);
+    ArrayList<TextMessage> getTextMessageRecords(Date day);
+    ArrayList<TextMessage> getTextMessageRecords(Date from, Date to);
 
-    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date day);
-    public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to);
+    ArrayList<Handover> getHandoverRecords(Date day);
+    ArrayList<Handover> getHandoverRecords(Date from, Date to);
 
-    public ArrayList<Data> getDataRecords(Date day);
-    public ArrayList<Data> getDataRecords(Date from, Date to);
+    ArrayList<LocationUpdate> getLocationUpdateRecords(Date day);
+    ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to);
+
+    ArrayList<Data> getDataRecords(Date day);
+    ArrayList<Data> getDataRecords(Date from, Date to);
 }
