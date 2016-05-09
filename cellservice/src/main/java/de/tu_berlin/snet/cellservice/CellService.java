@@ -14,7 +14,6 @@ import de.tu_berlin.snet.cellservice.model.record.TextMessage;
 
 public class CellService extends Service {
 
-    public static final String SHARED_PREFERENCES = "CellServiceSharedPreferences";
     private static Service instance;
     MobileNetworkHelper mobileNetworkHelper;
     CDRReceiver cdrReceiver = new CDRReceiver();
