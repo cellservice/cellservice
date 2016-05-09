@@ -416,31 +416,77 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
     @Override
     public ArrayList<Handover> getHandoverRecords(Date day) {
-        return null;
+        return getHandoverRecords(day, day);
     }
 
     @Override
     public ArrayList<Handover> getHandoverRecords(Date from, Date to) {
-        return null;
+        ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
+        final String selectHandoversByDate =
+                "SELECT startcell, endcell, time FROM Handovers" +
+                "   WHERE date(time, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
+        try {
+            TableResult result = mDb.get_table(selectHandoversByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                CellInfo startCell = getCellById(Long.parseLong(row[0]));
+                CellInfo endCell = getCellById(Long.parseLong(row[1]));
+                Handover handover = new Handover(startCell, endCell);
+                handover.setTimestamp(Long.parseLong(row[2]));
+                handoverArrayList.add(handover);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectHandoversByDate);
+        }
+
+        return handoverArrayList;
     }
 
     @Override
     public ArrayList<LocationUpdate> getLocationUpdateRecords(Date day) {
-        return null;
+        return getLocationUpdateRecords(day, day);
     }
 
     @Override
     public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to) {
-        return null;
+        ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
+        final String selectLocationUpdatesByDate =
+                "SELECT startcell, endcell, time FROM LocationUpdates" +
+                        "   WHERE date(time, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                        "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
+        try {
+            TableResult result = mDb.get_table(selectLocationUpdatesByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                CellInfo startCell = getCellById(Long.parseLong(row[0]));
+                CellInfo endCell = getCellById(Long.parseLong(row[1]));
+                LocationUpdate locationUpdate = new LocationUpdate(startCell, endCell);
+                locationUpdate.setTimestamp(Long.parseLong(row[2]));
+                locationUpdateArrayList.add(locationUpdate);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectLocationUpdatesByDate);
+        }
+
+        return locationUpdateArrayList;
     }
 
     @Override
     public ArrayList<Data> getDataRecords(Date day) {
 
+        return  getDataRecords(day, day);
+    }
+
+    @Override
+    public ArrayList<Data> getDataRecords(Date from, Date to) {
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
                 "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords"+
-                "   WHERE date(starttime, 'unixepoch', 'localtime') = '"+ day.toString() + "'";
+                "   WHERE date(starttime, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                "   AND date(endtime, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
         try {
             TableResult result = mDb.get_table(selectDataRecordByDate);
             Vector<String[]> rows = result.rows;
@@ -455,10 +501,5 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
 
         return dataArrayList;
-    }
-
-    @Override
-    public ArrayList<Data> getDataRecords(Date from, Date to) {
-        return null;
     }
 }
