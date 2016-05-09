@@ -16,7 +16,7 @@ import java.util.Set;
 import de.tu_berlin.snet.cellservice.CellService;
 import de.tu_berlin.snet.cellservice.util.Functions;
 
-public class OutgoingSMSObserver extends ContentObserver {
+public class OutgoingSMSObserver extends ContentObserver implements Observer {
     public interface OutgoingSMSListener {
         void onSMSSent(String receiverAddress);
     }
@@ -54,6 +54,16 @@ public class OutgoingSMSObserver extends ContentObserver {
     private static synchronized OutgoingSMSObserver getInstanceSync() {
         if (instance == null) instance = new OutgoingSMSObserver(new Handler());
         return instance;
+    }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+
     }
 
 

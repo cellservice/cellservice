@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class TrafficObserver {
+public class TrafficObserver implements Observer {
     public interface TrafficListener {
         void onBytesTransferred(long rxBytes, long txBytes, long timestamp);
     }
@@ -29,6 +29,7 @@ public class TrafficObserver {
         return instance;
     }
 
+    @Override
     public void addListener(TrafficListener toAdd) {
         listeners.add(toAdd);
     }
@@ -86,7 +87,9 @@ public class TrafficObserver {
         }, 1, 1000);
     }
 
+    @Override
     public void stop() {
         mTimer.cancel();
     }
+
 }

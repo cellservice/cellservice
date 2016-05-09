@@ -75,7 +75,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     public void onStart() {
         mCellInfoObserver = CellInfoObserver.getInstance();
         executor = Executors.newFixedThreadPool(10);
-        mCellInfoObserver.onStart();
+        mCellInfoObserver.start();
         listenForEvents();
     }
 
@@ -120,7 +120,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         mTrafficObserver.stop();
 
         mCellInfoObserver.removeListener(mCellInfoStateListener);
-        mCellInfoObserver.onStop();
+        mCellInfoObserver.stop();
 
         unregisterReceiver(mSMSReceiver);
 

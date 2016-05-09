@@ -26,7 +26,7 @@ import de.tu_berlin.snet.cellservice.util.Constants;
  * listen to Location Updates (triggered when the LAC between Cells change)
  */
 
-public class CellInfoObserver {
+public class CellInfoObserver implements Observer {
     public interface CellInfoListener {
         void onCellLocationChanged(CellInfo oldCell, CellInfo newCell);
         void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
@@ -58,12 +58,14 @@ public class CellInfoObserver {
         mPhoneStateListener = setupPhoneStateListener();
     }
 
-    public void onStart() {
+    @Override
+    public void start() {
         initializeOrRestoreCellInfos();
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION);
     }
 
-    public void onStop() {
+    @Override
+    public void stop() {
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
     }
 
