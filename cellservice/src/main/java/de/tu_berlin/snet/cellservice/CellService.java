@@ -13,11 +13,11 @@ import de.tu_berlin.snet.cellservice.model.record.LocationUpdate;
 import de.tu_berlin.snet.cellservice.model.record.TextMessage;
 
 public class CellService extends Service {
-
     private static Service instance;
-    MobileNetworkHelper mobileNetworkHelper;
-    CDRReceiver cdrReceiver = new CDRReceiver();
-    GeoDatabaseHelper geoDatabaseHelper;
+
+    private MobileNetworkHelper mobileNetworkHelper;
+    private CDRReceiver cdrReceiver = new CDRReceiver();
+    private GeoDatabaseHelper geoDatabaseHelper;
 
     public CellService() {
     }
@@ -44,7 +44,9 @@ public class CellService extends Service {
             Toast.makeText(this, "data sent to service was \"" + message + "\"", Toast.LENGTH_LONG).show();
             // otherwise catch exception
         } catch (Exception e) {
-            Toast.makeText(this, "didn't receive any data, but caught exception "+e.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this,
+                    String.format("didn't receive any data, but caught exception %s", e.toString()),
+                    Toast.LENGTH_LONG).show();
         }
 
         mobileNetworkHelper.addListener(cdrReceiver);
@@ -54,10 +56,10 @@ public class CellService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         mobileNetworkHelper.onStop();
         mobileNetworkHelper.removeListener(cdrReceiver);
         Toast.makeText(this, "Service is stopped", Toast.LENGTH_LONG).show();
+        super.onDestroy();
     }
 
     @Override

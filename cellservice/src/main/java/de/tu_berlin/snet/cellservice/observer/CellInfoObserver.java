@@ -32,11 +32,14 @@ public class CellInfoObserver implements Observer {
         void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
     }
 
+    private final static int fiveMinutes = 5 * 60 * 1000;
+
     private static CellInfoObserver instance;
 
-    private List<CellInfoListener> listeners = new ArrayList<CellInfoListener>();
+    private List<CellInfoListener> listeners = new ArrayList<>();
 
-    private CellInfo mPreviousCellInfo, mCurrentCellInfo;
+    private CellInfo mPreviousCellInfo;
+    private CellInfo mCurrentCellInfo;
 
     private PhoneStateListener mPhoneStateListener;
     private TelephonyManager mTelephonyManager;
@@ -44,12 +47,16 @@ public class CellInfoObserver implements Observer {
     // See http://stackoverflow.com/questions/14057273/android-singleton-with-global-context/14057777#14057777
     // for reference / double check synchronization
     public static CellInfoObserver getInstance() {
-        if (instance == null) instance = getInstanceSync();
+        if (instance == null) {
+            instance = getInstanceSync();
+        }
         return instance;
     }
 
     private static synchronized CellInfoObserver getInstanceSync() {
-        if (instance == null) instance = new CellInfoObserver();
+        if (instance == null) {
+            instance = new CellInfoObserver();
+        }
         return instance;
     }
 
@@ -78,9 +85,8 @@ public class CellInfoObserver implements Observer {
         long lastTimestamp = settings.getLong(Constants.SHARED_PREFERENCES_LAST_TIMESTAMP,
                 Constants.SHARED_PREFERENCES_LAST_TIMESTAMP_DEFAULT);
 
-        // if there was a last timestamp in the previous 5 minutes
-        long fiveMinsAgo = System.currentTimeMillis() - (5 * 60 * 1000);
-        if(fiveMinsAgo < lastTimestamp) {
+        long fiveMinsAgo = System.currentTimeMillis() - fiveMinutes;
+        if (fiveMinsAgo < lastTimestamp) {
             Log.e("PERSISTENCE", "retrieving cellinfos");
             Log.e("PERSISTENCE", String.format("retrieving cellinfos previous: %s",
                             settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, "")));
@@ -92,8 +98,7 @@ public class CellInfoObserver implements Observer {
             setCurrentCellInfo(gson.fromJson(
                     settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL,""),
                     CellInfo.class));
-        } // otherwise: create new objects
-        else {
+        } else {
             setPreviousCellInfo(getNewCellInfo()); // TODO: WORKS?... SOMETIMES SETS TO FAKECELLINFO
             setCurrentCellInfo(getNewCellInfo());
         }

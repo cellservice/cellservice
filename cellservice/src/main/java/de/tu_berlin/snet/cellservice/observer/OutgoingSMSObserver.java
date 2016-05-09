@@ -4,6 +4,7 @@ import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
+import android.provider.Telephony;
 import android.util.Log;
 
 import java.security.MessageDigest;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.tu_berlin.snet.cellservice.CellService;
+import de.tu_berlin.snet.cellservice.util.Constants;
 import de.tu_berlin.snet.cellservice.util.Functions;
 
 public class OutgoingSMSObserver extends ContentObserver implements Observer {
@@ -21,22 +23,20 @@ public class OutgoingSMSObserver extends ContentObserver implements Observer {
         void onSMSSent(String receiverAddress);
     }
 
-    private static boolean NOTIFY_LISTENERS = true;
-    private static boolean DONT_NOTIFY_LISTENERS = false;
+    public static boolean NOTIFY_LISTENERS = true;
+    public static boolean DONT_NOTIFY_LISTENERS = false;
+    public final static String SMS_URI = "content://sms/sent";
+    public final static String SMS_TYPE_SUCCESSFULLY_SENT = "2";
+    public final static String SMS_FIELD_TYPE = "type";
+    public final static String SMS_FIELD_ADDRESS = "address";
+    public final static String SMS_FIELD_BODY = "body";
+    public final static String SMS_FIELD_DATE = "date";
 
     private static OutgoingSMSObserver instance;
 
-    private List<OutgoingSMSListener> listeners = new ArrayList<OutgoingSMSListener>();
+    private List<OutgoingSMSListener> listeners = new ArrayList<>();
 
-    private Set<String> textMessageCache = new HashSet<String>();
-
-    public void addTextMessage(String message) {
-        textMessageCache.add(message);
-    }
-
-    public boolean isExistingTextMessage(String message) {
-        return textMessageCache.contains(message);
-    }
+    private Set<String> textMessageCache = new HashSet<>();
 
     private OutgoingSMSObserver(Handler handler) {
         super(handler);
@@ -47,12 +47,16 @@ public class OutgoingSMSObserver extends ContentObserver implements Observer {
     // See http://stackoverflow.com/questions/14057273/android-singleton-with-global-context/14057777#14057777
     // for reference / double check synchronization
     public static OutgoingSMSObserver getInstance() {
-        if (instance == null) instance = getInstanceSync();
+        if (instance == null) {
+            instance = getInstanceSync();
+        }
         return instance;
     }
 
     private static synchronized OutgoingSMSObserver getInstanceSync() {
-        if (instance == null) instance = new OutgoingSMSObserver(new Handler());
+        if (instance == null) {
+            instance = new OutgoingSMSObserver(new Handler());
+        }
         return instance;
     }
 
@@ -66,6 +70,11 @@ public class OutgoingSMSObserver extends ContentObserver implements Observer {
 
     }
 
+    @Override
+    public void onChange(boolean selfChange) {
+        super.onChange(selfChange);
+        checkForTextMessages(NOTIFY_LISTENERS);
+    }
 
     public void addListener(OutgoingSMSListener toAdd) {
         listeners.add(toAdd);
@@ -75,38 +84,41 @@ public class OutgoingSMSObserver extends ContentObserver implements Observer {
         listeners.remove(toRemove);
     }
 
+    private void addTextMessage(String message) {
+        textMessageCache.add(message);
+    }
+
+    private boolean isExistingTextMessage(String message) {
+        return textMessageCache.contains(message);
+    }
+
     private void checkForTextMessages(boolean notifyListeners) {
-        Uri smsuri = Uri.parse("content://sms/sent");
-        Cursor cursor = CellService.get().getContentResolver().query(smsuri, null, null, null, null);
+        Uri smsUri = Uri.parse(SMS_URI);
 
-        if (cursor != null && cursor.moveToFirst()) { // must check the result to prevent exception
+        Cursor cursor = CellService.get().getContentResolver().query(smsUri, null, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
             do {
-                String type = cursor.getString(cursor.getColumnIndex("type"));
-                if(type.equals("2")) { // successfully sent message
-                    String receiverAddress = cursor.getString(cursor.getColumnIndex("address"));
-                    String body = cursor.getString(cursor.getColumnIndex("body"));
-                    String date = cursor.getString(cursor.getColumnIndex("date"));
-
-                    String md5TextMessage = Functions.md5(receiverAddress + body + date);
+                String type = cursor.getString(cursor.getColumnIndex(SMS_FIELD_TYPE));
+                if(type.equals(SMS_TYPE_SUCCESSFULLY_SENT)) {
+                    final String receiverAddress = cursor.getString(cursor.getColumnIndex(SMS_FIELD_ADDRESS));
+                    final String body = cursor.getString(cursor.getColumnIndex(SMS_FIELD_BODY));
+                    final String date = cursor.getString(cursor.getColumnIndex(SMS_FIELD_DATE));
+                    final String md5TextMessage = Functions.md5(receiverAddress + body + date);
 
                     if(!isExistingTextMessage(md5TextMessage)) {
                         addTextMessage(md5TextMessage);
                         if(notifyListeners) {
-                            Log.e("OUTGOING SMS STUFF", "to: "+receiverAddress+" at: "+date+" writing: "+body);
-                            for (OutgoingSMSListener l : listeners)
-                                l.onSMSSent(receiverAddress);
+                            Log.e("OUTGOING SMS STUFF",String.format("to: %s at: %s writing: %s",
+                                    receiverAddress, date, body));
+                            for (OutgoingSMSListener listener : listeners) {
+                                listener.onSMSSent(receiverAddress);
+                            }
                         }
                     }
                 }
             } while (cursor.moveToNext());
-        } else {
-            // empty box, no SMS
+            cursor.close();
         }
-    }
-
-    @Override
-    public void onChange(boolean selfChange) {
-        super.onChange(selfChange);
-        checkForTextMessages(NOTIFY_LISTENERS);
     }
 }
