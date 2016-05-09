@@ -8,11 +8,14 @@ import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 public class Check {
 
     public static class Time {
+        private static final long YEAR_2016 = 1451606400L;
+        private static final long YEAR_2025 = 1767229261L;
+
         public static boolean isBefore2016(long timestamp) {
-            return timestamp < 1451606400L;
+            return timestamp < YEAR_2016;
         }
         public static boolean isBetween2016and2025(long timestamp) {
-            return timestamp > 1451606400L || timestamp < 1767229261L;
+            return timestamp > YEAR_2016 || timestamp < YEAR_2025;
         }
         public static boolean isBefore(long timestampOne, long timestampTwo) {
             return timestampOne < timestampTwo;
