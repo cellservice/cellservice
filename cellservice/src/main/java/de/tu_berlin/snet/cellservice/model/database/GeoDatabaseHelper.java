@@ -1,5 +1,6 @@
 package de.tu_berlin.snet.cellservice.model.database;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.location.Location;
 import android.os.Environment;
@@ -371,6 +372,29 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
     }
 
+    private ArrayList<Handover> getHandoversByCallId(long id) {
+        ArrayList<Handover> handovers = new ArrayList<Handover>();
+        String getHandoverByCallIdStatement =
+                "SELECT startcell, endcell time" +
+                "   FROM Handovers" +
+                "   WHERE call_id = %d;";
+        try {
+            TableResult result = mDb.get_table(String.format(getHandoverByCallIdStatement, id));
+            Vector<String[]> rows = result.rows;
+            for(String[] fields : rows) {
+                CellInfo startCell = getCellById(Long.valueOf(fields[0]));
+                CellInfo endCell = getCellById(Long.valueOf(fields[1]));
+                long timestamp = Long.valueOf(fields[2]);
+                Handover handover = new Handover(startCell, endCell);
+                handover.setTimestamp(timestamp);
+                handovers.add(handover);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return handovers;
+    }
+
     public Date[] getLastThreeDates() {
         final String threeDatesStatement =
                 "SELECT DISTINCT strftime('%s',date(starttime, 'unixepoch', 'localtime')) AS date" +
@@ -396,51 +420,142 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
     @Override
     public ArrayList<Call> getCallRecords(Date day) {
-        return null;
+        return getCallRecords(day, day);
     }
 
     @Override
     public ArrayList<Call> getCallRecords(Date from, Date to) {
-        return null;
+        ArrayList<Call> callArrayList = new ArrayList<Call>();
+        final String selectCallsByDate =
+                "SELECT id, direction, address, starttime, endtime, startcell" +
+                "   FROM Calls" +
+                "   WHERE date(starttime, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                "   AND date(endtime, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
+        try {
+            TableResult tableResult = mDb.get_table(selectCallsByDate);
+            Vector<String[]> rows = tableResult.rows;
+            for(String[] fields : rows) {
+                long call_id = Long.valueOf(fields[0]);
+                String direction = fields[1];
+                String address = fields[2];
+                long starttime = Long.valueOf(fields[3]);
+                long endtime = Long.valueOf(fields[4]);
+                CellInfo startCell = getCellById(Long.valueOf(fields[5]));
+
+                Call call = new Call(startCell, direction, address, new ArrayList<Handover>(), starttime, endtime);
+                for(Handover handover : getHandoversByCallId(call_id)) {
+                    call.addHandover(handover);
+                }
+                callArrayList.add(call);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return callArrayList;
     }
 
     @Override
     public ArrayList<TextMessage> getTextMessageRecords(Date day) {
-        return null;
+        return getTextMessageRecords(day, day);
     }
 
     @Override
     public ArrayList<TextMessage> getTextMessageRecords(Date from, Date to) {
-        return null;
+        ArrayList<TextMessage> textMessages = new ArrayList<TextMessage>();
+        final String selectTextMessagesByDate =
+                "SELECT direction, address, time, cell_id" +
+                "   FROM TextMessages" +
+                "   WHERE date(time, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
+        try {
+            TableResult tableResult = mDb.get_table(selectTextMessagesByDate);
+            Vector<String[]> rows = tableResult.rows;
+            for(String[] fields : rows) {
+                String direction = fields[0];
+                String address = fields[1];
+                long time = Long.valueOf(fields[2]);
+                CellInfo cell = getCellById(Long.valueOf(fields[3]));
+                textMessages.add(new TextMessage(cell, direction, address, time));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return textMessages;
     }
 
     @Override
     public ArrayList<Handover> getHandoverRecords(Date day) {
-        return null;
+        return getHandoverRecords(day, day);
     }
 
     @Override
     public ArrayList<Handover> getHandoverRecords(Date from, Date to) {
-        return null;
+        ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
+        final String selectHandoversByDate =
+                "SELECT startcell, endcell, time FROM Handovers" +
+                "   WHERE date(time, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
+        try {
+            TableResult result = mDb.get_table(selectHandoversByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                CellInfo startCell = getCellById(Long.parseLong(row[0]));
+                CellInfo endCell = getCellById(Long.parseLong(row[1]));
+                Handover handover = new Handover(startCell, endCell);
+                handover.setTimestamp(Long.parseLong(row[2]));
+                handoverArrayList.add(handover);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectHandoversByDate);
+        }
+
+        return handoverArrayList;
     }
 
     @Override
     public ArrayList<LocationUpdate> getLocationUpdateRecords(Date day) {
-        return null;
+        return getLocationUpdateRecords(day, day);
     }
 
     @Override
     public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to) {
-        return null;
+        ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
+        final String selectLocationUpdatesByDate =
+                "SELECT startcell, endcell, time FROM LocationUpdates" +
+                        "   WHERE date(time, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                        "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
+        try {
+            TableResult result = mDb.get_table(selectLocationUpdatesByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                CellInfo startCell = getCellById(Long.parseLong(row[0]));
+                CellInfo endCell = getCellById(Long.parseLong(row[1]));
+                LocationUpdate locationUpdate = new LocationUpdate(startCell, endCell);
+                locationUpdate.setTimestamp(Long.parseLong(row[2]));
+                locationUpdateArrayList.add(locationUpdate);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectLocationUpdatesByDate);
+        }
+
+        return locationUpdateArrayList;
     }
 
     @Override
     public ArrayList<Data> getDataRecords(Date day) {
 
+        return  getDataRecords(day, day);
+    }
+
+    @Override
+    public ArrayList<Data> getDataRecords(Date from, Date to) {
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
                 "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords"+
-                "   WHERE date(starttime, 'unixepoch', 'localtime') = '"+ day.toString() + "'";
+                "   WHERE date(starttime, 'unixepoch', 'localtime') >= '"+ from.toString() + "'" +
+                "   AND date(endtime, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
         try {
             TableResult result = mDb.get_table(selectDataRecordByDate);
             Vector<String[]> rows = result.rows;
@@ -455,10 +570,5 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
 
         return dataArrayList;
-    }
-
-    @Override
-    public ArrayList<Data> getDataRecords(Date from, Date to) {
-        return null;
     }
 }
