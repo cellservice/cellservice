@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.location.Location;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
@@ -419,6 +420,25 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     }
 
     @Override
+    public ArrayList<Call> getAllCallRecords() {
+        ArrayList<Call> callArrayList = new ArrayList<Call>();
+        final String selectAllCalls =
+                "SELECT id, direction, address, starttime, endtime, startcell" +
+                        "   FROM Calls;";
+        try {
+            TableResult tableResult = mDb.get_table(selectAllCalls);
+            Vector<String[]> rows = tableResult.rows;
+            for(String[] fields : rows) {
+                Call call = parseCall(fields);
+                callArrayList.add(call);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return callArrayList;
+    }
+
+    @Override
     public ArrayList<Call> getCallRecords(Date day) {
         return getCallRecords(day, day);
     }
@@ -435,23 +455,48 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             TableResult tableResult = mDb.get_table(selectCallsByDate);
             Vector<String[]> rows = tableResult.rows;
             for(String[] fields : rows) {
-                long call_id = Long.valueOf(fields[0]);
-                String direction = fields[1];
-                String address = fields[2];
-                long starttime = Long.valueOf(fields[3]);
-                long endtime = Long.valueOf(fields[4]);
-                CellInfo startCell = getCellById(Long.valueOf(fields[5]));
-
-                Call call = new Call(startCell, direction, address, new ArrayList<Handover>(), starttime, endtime);
-                for(Handover handover : getHandoversByCallId(call_id)) {
-                    call.addHandover(handover);
-                }
+                Call call = parseCall(fields);
                 callArrayList.add(call);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return callArrayList;
+    }
+
+    @NonNull
+    private Call parseCall(String[] fields) {
+        long call_id = Long.valueOf(fields[0]);
+        String direction = fields[1];
+        String address = fields[2];
+        long starttime = Long.valueOf(fields[3]);
+        long endtime = Long.valueOf(fields[4]);
+        CellInfo startCell = getCellById(Long.valueOf(fields[5]));
+
+        Call call = new Call(startCell, direction, address, new ArrayList<Handover>(), starttime, endtime);
+        for(Handover handover : getHandoversByCallId(call_id)) {
+            call.addHandover(handover);
+        }
+        return call;
+    }
+
+    @Override
+    public ArrayList<TextMessage> getAllTextMessageRecords() {
+        ArrayList<TextMessage> textMessages = new ArrayList<TextMessage>();
+        final String selectTextMessagesByDate =
+                "SELECT direction, address, time, cell_id" +
+                        "   FROM TextMessages;";
+        try {
+            TableResult tableResult = mDb.get_table(selectTextMessagesByDate);
+            Vector<String[]> rows = tableResult.rows;
+            for(String[] fields : rows) {
+                TextMessage textMessage = parseTextMessage(fields);
+                textMessages.add(textMessage);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return textMessages;
     }
 
     @Override
@@ -471,16 +516,51 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             TableResult tableResult = mDb.get_table(selectTextMessagesByDate);
             Vector<String[]> rows = tableResult.rows;
             for(String[] fields : rows) {
-                String direction = fields[0];
-                String address = fields[1];
-                long time = Long.valueOf(fields[2]);
-                CellInfo cell = getCellById(Long.valueOf(fields[3]));
-                textMessages.add(new TextMessage(cell, direction, address, time));
+                TextMessage textMessage = parseTextMessage(fields);
+                textMessages.add(textMessage);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return textMessages;
+    }
+
+    @NonNull
+    private TextMessage parseTextMessage(String[] fields) {
+        String direction = fields[0];
+        String address = fields[1];
+        long time = Long.valueOf(fields[2]);
+        CellInfo cell = getCellById(Long.valueOf(fields[3]));
+        return new TextMessage(cell, direction, address, time);
+    }
+
+    @Override
+    public ArrayList<Handover> getAllHandoverRecords() {
+        ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
+        final String selectHandoversByDate =
+                "SELECT startcell, endcell, time FROM Handovers;";
+        try {
+            TableResult result = mDb.get_table(selectHandoversByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                Handover handover = parseHandover(row);
+                handoverArrayList.add(handover);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectHandoversByDate);
+        }
+
+        return handoverArrayList;
+    }
+
+    @NonNull
+    private Handover parseHandover(String[] row) {
+        CellInfo startCell = getCellById(Long.parseLong(row[0]));
+        CellInfo endCell = getCellById(Long.parseLong(row[1]));
+        Handover handover = new Handover(startCell, endCell);
+        handover.setTimestamp(Long.parseLong(row[2]));
+        return handover;
     }
 
     @Override
@@ -499,10 +579,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             TableResult result = mDb.get_table(selectHandoversByDate);
             Vector<String[]> rows = result.rows;
             for (String[] row : rows) {
-                CellInfo startCell = getCellById(Long.parseLong(row[0]));
-                CellInfo endCell = getCellById(Long.parseLong(row[1]));
-                Handover handover = new Handover(startCell, endCell);
-                handover.setTimestamp(Long.parseLong(row[2]));
+                Handover handover = parseHandover(row);
                 handoverArrayList.add(handover);
             }
         } catch (Exception e) {
@@ -511,6 +588,35 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
 
         return handoverArrayList;
+    }
+
+    @Override
+    public ArrayList<LocationUpdate> geAlltLocationUpdateRecords() {
+        ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
+        final String selectLocationUpdatesByDate =
+                "SELECT startcell, endcell, time FROM LocationUpdates;";
+        try {
+            TableResult result = mDb.get_table(selectLocationUpdatesByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                LocationUpdate locationUpdate = parseLocationUpdate(row);
+                locationUpdateArrayList.add(locationUpdate);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectLocationUpdatesByDate);
+        }
+
+        return locationUpdateArrayList;
+    }
+
+    @NonNull
+    private LocationUpdate parseLocationUpdate(String[] row) {
+        CellInfo startCell = getCellById(Long.parseLong(row[0]));
+        CellInfo endCell = getCellById(Long.parseLong(row[1]));
+        LocationUpdate locationUpdate = new LocationUpdate(startCell, endCell);
+        locationUpdate.setTimestamp(Long.parseLong(row[2]));
+        return locationUpdate;
     }
 
     @Override
@@ -529,10 +635,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             TableResult result = mDb.get_table(selectLocationUpdatesByDate);
             Vector<String[]> rows = result.rows;
             for (String[] row : rows) {
-                CellInfo startCell = getCellById(Long.parseLong(row[0]));
-                CellInfo endCell = getCellById(Long.parseLong(row[1]));
-                LocationUpdate locationUpdate = new LocationUpdate(startCell, endCell);
-                locationUpdate.setTimestamp(Long.parseLong(row[2]));
+                LocationUpdate locationUpdate = parseLocationUpdate(row);
                 locationUpdateArrayList.add(locationUpdate);
             }
         } catch (Exception e) {
@@ -544,8 +647,27 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     }
 
     @Override
-    public ArrayList<Data> getDataRecords(Date day) {
+    public ArrayList<Data> getAllDataRecords(Date day) {
+        ArrayList<Data> dataArrayList = new ArrayList<Data>();
+        final String selectDataRecordByDate =
+                "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords;";
+        try {
+            TableResult result = mDb.get_table(selectDataRecordByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                Data data = parseDataRecord(row);
+                dataArrayList.add(data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG_SL, "could not find: "+selectDataRecordByDate);
+        }
 
+        return dataArrayList;
+    }
+
+    @Override
+    public ArrayList<Data> getDataRecords(Date day) {
         return  getDataRecords(day, day);
     }
 
@@ -560,8 +682,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             TableResult result = mDb.get_table(selectDataRecordByDate);
             Vector<String[]> rows = result.rows;
             for (String[] row : rows) {
-                CellInfo cellInfo = getCellById(Long.parseLong(row[4]));
-                Data data = new Data(cellInfo, Long.parseLong(row[0]), Long.parseLong(row[1]), Long.parseLong(row[2]), Long.parseLong(row[3]));
+                Data data = parseDataRecord(row);
                 dataArrayList.add(data);
             }
         } catch (Exception e) {
@@ -570,5 +691,11 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
 
         return dataArrayList;
+    }
+
+    @NonNull
+    private Data parseDataRecord(String[] row) {
+        CellInfo cellInfo = getCellById(Long.parseLong(row[4]));
+        return new Data(cellInfo, Long.parseLong(row[0]), Long.parseLong(row[1]), Long.parseLong(row[2]), Long.parseLong(row[3]));
     }
 }
