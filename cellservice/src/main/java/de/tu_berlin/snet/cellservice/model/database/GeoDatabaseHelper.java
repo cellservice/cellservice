@@ -277,7 +277,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         execSQL("SELECT InsertEpsgSrid(25832);");
         execSQL("SELECT InsertEpsgSrid(25833);");
 
-        String createCellsTable =
+        final String createCellsTable =
                 "CREATE TABLE IF NOT EXISTS Cells (" +
                         "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "   cellid INTEGER NOT NULL," +
@@ -287,7 +287,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "   technology INTEGER NOT NULL" +
                         "   );";
 
-        String createCallsTable =
+        final String createCallsTable =
                 "CREATE TABLE IF NOT EXISTS Calls (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "	direction TEXT NOT NULL," +
@@ -297,7 +297,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "	startcell INTEGER NOT NULL REFERENCES Cells(id)" +
                         "	);";
 
-        String createHandoversTable =
+        final String createHandoversTable =
                 "CREATE TABLE IF NOT EXISTS Handovers (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "   call_id INTEGER NOT NULL REFERENCES Calls(id)," +
@@ -306,7 +306,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "   time INTEGER NOT NULL" +
                         "	)";
 
-        String createLocationUpdatesTable =
+        final String createLocationUpdatesTable =
                 "CREATE TABLE IF NOT EXISTS LocationUpdates (" +
                         "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "   startcell NOT NULL REFERENCES Cells(id)," +
@@ -314,7 +314,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "   time INTEGER NOT NULL" +
                         "   );";
 
-        String createDataEventsTable =
+        final String createDataEventsTable =
                 "CREATE TABLE IF NOT EXISTS DataRecords (" +
                         "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "   rxbytes INTEGER NOT NULL," +
@@ -324,7 +324,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "   cell_id INTEGER NOT NULL REFERENCES Cells(id)" +
                         "   );";
 
-        String createTextMessagesTable =
+        final String createTextMessagesTable =
                 "CREATE TABLE IF NOT EXISTS TextMessages (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "	direction TEXT NOT NULL," +
@@ -333,7 +333,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "	cell_id INTEGER NOT NULL REFERENCES Cells(id)" +
                         "	);";
 
-        String createMeasurementsTable =
+        final String createMeasurementsTable =
                 "CREATE TABLE IF NOT EXISTS Measurements (" +
                         "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                         "	cell_id INTEGER NOT NULL REFERENCES Cells(id)," +
@@ -343,7 +343,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
                         "   time INTEGER NOT NULL" +
                         "	);";
 
-        String addPointGeometryToMeasurementsTable =
+        final String addPointGeometryToMeasurementsTable =
                 "SELECT AddGeometryColumn('Measurements', 'centroid', 4326, 'POINT', 'XY', 1);";
 
 
@@ -396,7 +396,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     }
 
     public Date[] getLastThreeDates() {
-        String threeDatesStatement =
+        final String threeDatesStatement =
                 "SELECT DISTINCT strftime('%s',date(starttime, 'unixepoch', 'localtime')) AS date" +
                 "   FROM (SELECT starttime FROM Calls UNION" +
                 "         SELECT starttime FROM DataRecords UNION" +

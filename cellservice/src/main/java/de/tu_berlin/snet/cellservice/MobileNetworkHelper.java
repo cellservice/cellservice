@@ -62,7 +62,9 @@ public class MobileNetworkHelper extends ContextWrapper {
     private ExecutorService executor;
 
     public static MobileNetworkHelper getInstance(Context base) {
-        if (instance == null) instance = new MobileNetworkHelper(base);
+        if (instance == null) {
+            instance = new MobileNetworkHelper(base);
+        }
         return instance;
     }
 
@@ -75,12 +77,20 @@ public class MobileNetworkHelper extends ContextWrapper {
     public void onStart() {
         mCellInfoObserver = CellInfoObserver.getInstance();
         executor = Executors.newFixedThreadPool(10);
-        mCellInfoObserver.onStart();
+        mCellInfoObserver.start();
         listenForEvents();
     }
 
     public void onStop() {
         stopListening();
+    }
+
+    public void addListener(CDRListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(CDRListener listener) {
+        listeners.remove(listener);
     }
 
     private void listenForEvents() {
@@ -120,7 +130,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         mTrafficObserver.stop();
 
         mCellInfoObserver.removeListener(mCellInfoStateListener);
-        mCellInfoObserver.onStop();
+        mCellInfoObserver.stop();
 
         unregisterReceiver(mSMSReceiver);
 
@@ -128,14 +138,6 @@ public class MobileNetworkHelper extends ContextWrapper {
 
         mContentResolver.unregisterContentObserver(mSMSObserver);
         mSMSObserver.removeListener(mOutgoingSMSStateListener);
-    }
-
-    public void addListener(CDRListener listener) {
-        listeners.add(listener);
-    }
-
-    public void removeListener(CDRListener listener) {
-        listeners.remove(listener);
     }
 
     private CellInfo addGPSLocation(CellInfo cellInfo) {
@@ -223,7 +225,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         }
     }
 
-    public final class SmsReceiver extends BroadcastReceiver {
+    private final class SmsReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();

@@ -17,6 +17,7 @@ import java.util.List;
 import de.tu_berlin.snet.cellservice.CellService;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 import de.tu_berlin.snet.cellservice.model.FakeCellInfo;
+import de.tu_berlin.snet.cellservice.util.Constants;
 
 /**
  * Created by Friedhelm Victor on 3/29/16.
@@ -25,17 +26,20 @@ import de.tu_berlin.snet.cellservice.model.FakeCellInfo;
  * listen to Location Updates (triggered when the LAC between Cells change)
  */
 
-public class CellInfoObserver {
+public class CellInfoObserver implements Observer {
     public interface CellInfoListener {
         void onCellLocationChanged(CellInfo oldCell, CellInfo newCell);
         void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
     }
 
+    private final static int fiveMinutes = 5 * 60 * 1000;
+
     private static CellInfoObserver instance;
 
-    private List<CellInfoListener> listeners = new ArrayList<CellInfoListener>();
+    private List<CellInfoListener> listeners = new ArrayList<>();
 
-    private CellInfo mPreviousCellInfo, mCurrentCellInfo;
+    private CellInfo mPreviousCellInfo;
+    private CellInfo mCurrentCellInfo;
 
     private PhoneStateListener mPhoneStateListener;
     private TelephonyManager mTelephonyManager;
@@ -43,12 +47,16 @@ public class CellInfoObserver {
     // See http://stackoverflow.com/questions/14057273/android-singleton-with-global-context/14057777#14057777
     // for reference / double check synchronization
     public static CellInfoObserver getInstance() {
-        if (instance == null) instance = getInstanceSync();
+        if (instance == null) {
+            instance = getInstanceSync();
+        }
         return instance;
     }
 
     private static synchronized CellInfoObserver getInstanceSync() {
-        if (instance == null) instance = new CellInfoObserver();
+        if (instance == null) {
+            instance = new CellInfoObserver();
+        }
         return instance;
     }
 
@@ -57,33 +65,40 @@ public class CellInfoObserver {
         mPhoneStateListener = setupPhoneStateListener();
     }
 
-    public void onStart() {
+    @Override
+    public void start() {
         initializeOrRestoreCellInfos();
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION);
     }
 
-    public void onStop() {
+    @Override
+    public void stop() {
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
     }
 
     // TODO: POSSIBLE PROBLEM: WHAT IF WE ARE NEVER REGISTERED TO A NETWORK? -> NO CELLINFO!
     private void initializeOrRestoreCellInfos() {
         // Restore preferences
-        SharedPreferences settings = CellService.get().getSharedPreferences(CellService.SHARED_PREFERENCES, 0);
+        SharedPreferences settings = CellService.get().getSharedPreferences(Constants.SHARED_PREFERENCES_FILE_NAME, 0);
         Gson gson = new Gson();
         // retrieve the last timestamp. Default value is 2016-01-01 01:01:01 CET
-        long lastTimestamp = settings.getLong("CellInfoObserverLastTimestamp", 1451606461000L);
+        long lastTimestamp = settings.getLong(Constants.SHARED_PREFERENCES_LAST_TIMESTAMP,
+                Constants.SHARED_PREFERENCES_LAST_TIMESTAMP_DEFAULT);
 
-        // if there was a last timestamp in the previous 5 minutes
-        long fiveMinsAgo = System.currentTimeMillis() - (5 * 60 * 1000);
-        if(fiveMinsAgo < lastTimestamp) {
+        long fiveMinsAgo = System.currentTimeMillis() - fiveMinutes;
+        if (fiveMinsAgo < lastTimestamp) {
             Log.e("PERSISTENCE", "retrieving cellinfos");
-            Log.e("PERSISTENCE", "retrieving cellinfos previous: "+settings.getString("previousCellInfo", ""));
-            Log.e("PERSISTENCE", "retrieving cellinfos current: "+settings.getString("currentCellInfo", ""));
-            setPreviousCellInfo(gson.fromJson(settings.getString("previousCellInfo", ""), CellInfo.class));
-            setCurrentCellInfo(gson.fromJson(settings.getString("currentCellInfo",""), CellInfo.class));
-        } // otherwise: create new objects
-        else {
+            Log.e("PERSISTENCE", String.format("retrieving cellinfos previous: %s",
+                            settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, "")));
+            Log.e("PERSISTENCE", String.format("retrieving cellinfos current: %s",
+                    settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL, "")));
+            setPreviousCellInfo(gson.fromJson(
+                    settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, ""),
+                    CellInfo.class));
+            setCurrentCellInfo(gson.fromJson(
+                    settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL,""),
+                    CellInfo.class));
+        } else {
             setPreviousCellInfo(getNewCellInfo()); // TODO: WORKS?... SOMETIMES SETS TO FAKECELLINFO
             setCurrentCellInfo(getNewCellInfo());
         }
@@ -91,15 +106,17 @@ public class CellInfoObserver {
 
     private void persistCellInfosToPreferences() {
         Log.e("PERSISTENCE", "saving cellinfos");
-        SharedPreferences settings = CellService.get().getSharedPreferences(CellService.SHARED_PREFERENCES, 0);
+        SharedPreferences settings = CellService.get().getSharedPreferences(Constants.SHARED_PREFERENCES_FILE_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         Gson gson = new Gson();
 
         Log.e("PERSISTENCE", "previousCellInfoJson: "+gson.toJson(getPreviousCellInfo()));
-        editor.putString("previousCellInfo", gson.toJson(getPreviousCellInfo()));
-        editor.putString("currentCellInfo", gson.toJson(getCurrentCellInfo()));
+        editor.putString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL,
+                gson.toJson(getPreviousCellInfo()));
+        editor.putString(Constants.SHARED_PREFERENCES_CURRENT_CELL,
+                gson.toJson(getCurrentCellInfo()));
 
-        editor.putLong("CellInfoObserverLastTimestamp", System.currentTimeMillis());
+        editor.putLong(Constants.SHARED_PREFERENCES_LAST_TIMESTAMP, System.currentTimeMillis());
 
         editor.apply();
     }
