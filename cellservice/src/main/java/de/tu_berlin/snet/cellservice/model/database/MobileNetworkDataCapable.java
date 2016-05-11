@@ -41,7 +41,7 @@ public interface MobileNetworkDataCapable {
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date day);
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to);
 
-    ArrayList<Data> getAllDataRecords(Date day);
+    ArrayList<Data> getAllDataRecords();
     ArrayList<Data> getDataRecords(Date day);
     ArrayList<Data> getDataRecords(Date from, Date to);
 }

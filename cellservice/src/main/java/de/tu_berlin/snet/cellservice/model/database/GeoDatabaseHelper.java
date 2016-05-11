@@ -647,7 +647,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     }
 
     @Override
-    public ArrayList<Data> getAllDataRecords(Date day) {
+    public ArrayList<Data> getAllDataRecords() {
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
                 "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords;";
