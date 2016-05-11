@@ -25,18 +25,23 @@ public interface MobileNetworkDataCapable {
 
     Date[] getLastThreeDates();
 
+    ArrayList<Call> getAllCallRecords();
     ArrayList<Call> getCallRecords(Date day);
     ArrayList<Call> getCallRecords(Date from, Date to);
 
+    ArrayList<TextMessage> getAllTextMessageRecords();
     ArrayList<TextMessage> getTextMessageRecords(Date day);
     ArrayList<TextMessage> getTextMessageRecords(Date from, Date to);
 
+    ArrayList<Handover> getAllHandoverRecords();
     ArrayList<Handover> getHandoverRecords(Date day);
     ArrayList<Handover> getHandoverRecords(Date from, Date to);
 
+    ArrayList<LocationUpdate> geAlltLocationUpdateRecords();
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date day);
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to);
 
+    ArrayList<Data> getAllDataRecords();
     ArrayList<Data> getDataRecords(Date day);
     ArrayList<Data> getDataRecords(Date from, Date to);
 }
