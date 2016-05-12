@@ -376,7 +376,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     private ArrayList<Handover> getHandoversByCallId(long id) {
         ArrayList<Handover> handovers = new ArrayList<Handover>();
         String getHandoverByCallIdStatement =
-                "SELECT startcell, endcell time" +
+                "SELECT startcell, endcell, time" +
                 "   FROM Handovers" +
                 "   WHERE call_id = %d;";
         try {
