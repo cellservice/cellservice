@@ -1,6 +1,5 @@
 package de.tu_berlin.snet.cellservice.model.database;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.location.Location;
 import android.os.Environment;
@@ -20,6 +19,8 @@ import de.tu_berlin.snet.cellservice.model.record.LocationUpdate;
 import de.tu_berlin.snet.cellservice.model.record.TextMessage;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 import de.tu_berlin.snet.cellservice.model.FakeCellInfo;
+import de.tu_berlin.snet.cellservice.util.database.MigrationManager;
+import de.tu_berlin.snet.cellservice.util.database.SQLExecutable;
 import jsqlite.Database;
 import jsqlite.Exception;
 import jsqlite.Stmt;
@@ -29,7 +30,7 @@ import jsqlite.TableResult;
  * Created by Friedhelm Victor on 4/21/16.
  * This class should implement the Interface MobileNetworkDataCapable
  */
-public class GeoDatabaseHelper implements MobileNetworkDataCapable {
+public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutable {
 
     private static final String TAG = "GEODBH";
     private static final String TAG_SL = TAG + "_JSQLITE";
@@ -68,7 +69,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
 
     private GeoDatabaseHelper(Context context) {
         try {
-            //File sdcardDir = ""; // your sdcard path
             File spatialDbFile = new File(DB_PATH, DB_NAME);
             Log.e("CREATE DATABASE FILE", "PATH: "+spatialDbFile);
 
@@ -78,14 +78,17 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        createTables(); // TODO: ONLY CREATE TABLES IF THE DATABASE DIDN'T EXIST YET
+
+        MigrationManager migrationManager = new MigrationManager(context, this);
+        migrationManager.initialize();
+        migrationManager.run();
     }
 
 
     /*
     TODO: WHY NOT USE mDb.exec? What about the callback feature?
      */
-    synchronized void execSQL(String statement) {
+    public synchronized void execSQL(String statement) {
         try {
             Stmt stmt = mDb.prepare(statement);
             stmt.step();
@@ -94,7 +97,26 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
     }
 
-    synchronized void execSQL(String statement, String... args) {
+    @Override
+    public String[][] getSQLTableResult(String sql) {
+        String[][] resultRows;
+        try {
+            TableResult result = mDb.get_table(sql);
+            Vector<String[]> rows = result.rows;
+            if(rows != null && rows.size() > 0) {
+                resultRows = new String[rows.size()][rows.firstElement().length];
+                for(int i=0; i<rows.size(); i++) {
+                    resultRows[i] = rows.get(i);
+                }
+                return resultRows;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public synchronized void execSQL(String statement, String... args) {
         try {
             Stmt stmt = mDb.prepare(String.format(statement, args));
             stmt.step();
@@ -264,98 +286,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
             Log.e(TAG_SL, "could not find id with query: "+queryWithOneIdResult);
             return -1;
         }
-    }
-
-    @Override
-    public void createTables() {
-        // Careful! This step can take some time!
-        // See http://northredoubt.com/n/2012/06/03/recent-spatialite-news-may-2012/
-        //execSQL("SELECT InitSpatialMetaData('WGS84_ONLY');"); // 130 rows
-        execSQL("SELECT InitSpatialMetaData('NONE');");
-        execSQL("SELECT InsertEpsgSrid(4326);");
-        execSQL("SELECT InsertEpsgSrid(32632);");
-        execSQL("SELECT InsertEpsgSrid(32633);");
-        execSQL("SELECT InsertEpsgSrid(25832);");
-        execSQL("SELECT InsertEpsgSrid(25833);");
-
-        final String createCellsTable =
-                "CREATE TABLE IF NOT EXISTS Cells (" +
-                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   cellid INTEGER NOT NULL," +
-                        "   lac INTEGER NOT NULL," +
-                        "   mnc INTEGER NOT NULL," +
-                        "   mcc INTEGER NOT NULL," +
-                        "   technology INTEGER NOT NULL" +
-                        "   );";
-
-        final String createCallsTable =
-                "CREATE TABLE IF NOT EXISTS Calls (" +
-                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	direction TEXT NOT NULL," +
-                        "	address TEXT NOT NULL," +
-                        "	starttime INTEGER NOT NULL," +
-                        "	endtime INTEGER NOT NULL," +
-                        "	startcell INTEGER NOT NULL REFERENCES Cells(id)" +
-                        "	);";
-
-        final String createHandoversTable =
-                "CREATE TABLE IF NOT EXISTS Handovers (" +
-                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   call_id INTEGER NOT NULL REFERENCES Calls(id)," +
-                        "	startcell NOT NULL REFERENCES Cells(id)," +
-                        "	endcell NOT NULL REFERENCES Cells(id)," +
-                        "   time INTEGER NOT NULL" +
-                        "	)";
-
-        final String createLocationUpdatesTable =
-                "CREATE TABLE IF NOT EXISTS LocationUpdates (" +
-                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   startcell NOT NULL REFERENCES Cells(id)," +
-                        "   endcell NOT NULL REFERENCES Cells(id)," +
-                        "   time INTEGER NOT NULL" +
-                        "   );";
-
-        final String createDataEventsTable =
-                "CREATE TABLE IF NOT EXISTS DataRecords (" +
-                        "   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "   rxbytes INTEGER NOT NULL," +
-                        "   txbytes INTEGER NOT NULL," +
-                        "   starttime INTEGER NOT NULL," +
-                        "   endtime INTEGER NOT NULL," +
-                        "   cell_id INTEGER NOT NULL REFERENCES Cells(id)" +
-                        "   );";
-
-        final String createTextMessagesTable =
-                "CREATE TABLE IF NOT EXISTS TextMessages (" +
-                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	direction TEXT NOT NULL," +
-                        "	address TEXT NOT NULL," +
-                        "	time INTEGER NOT NULL," +
-                        "	cell_id INTEGER NOT NULL REFERENCES Cells(id)" +
-                        "	);";
-
-        final String createMeasurementsTable =
-                "CREATE TABLE IF NOT EXISTS Measurements (" +
-                        "	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-                        "	cell_id INTEGER NOT NULL REFERENCES Cells(id)," +
-                        "	provider TEXT NOT NULL," +
-                        "   accuracy REAL NOT NULL," +
-                        "   event TEXT NOT NULL," +
-                        "   time INTEGER NOT NULL" +
-                        "	);";
-
-        final String addPointGeometryToMeasurementsTable =
-                "SELECT AddGeometryColumn('Measurements', 'centroid', 4326, 'POINT', 'XY', 1);";
-
-
-        execSQL(createCellsTable);
-        execSQL(createCallsTable);
-        execSQL(createHandoversTable);
-        execSQL(createLocationUpdatesTable);
-        execSQL(createDataEventsTable);
-        execSQL(createTextMessagesTable);
-        execSQL(createMeasurementsTable);
-        execSQL(addPointGeometryToMeasurementsTable);
     }
 
     public CellInfo getCellById(long id) {

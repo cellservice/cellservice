@@ -21,8 +21,6 @@ public interface MobileNetworkDataCapable {
     boolean insertRecord(Data data);
     boolean insertMeasurement(CellInfo cellInfo, String event);
 
-    void createTables();
-
     Date[] getLastThreeDates();
 
     ArrayList<Call> getAllCallRecords();
