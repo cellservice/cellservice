@@ -41,7 +41,7 @@ public class Migration implements Comparable<Migration>{
     }
 
     public String getSqlStatementsEscaped() {
-        return getSqlStatement().replaceAll("'","''");
+        return this.sqlStatements.replaceAll("'","''");
     }
 
     @Override

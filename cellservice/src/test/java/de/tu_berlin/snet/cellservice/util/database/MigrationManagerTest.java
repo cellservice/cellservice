@@ -206,11 +206,12 @@ public class MigrationManagerTest {
     @Test
     public void shouldStripAwayCommentsFromSQLStatements() throws Exception {
         String statement = "DROP TABLE Calls;";
+        String migrationContent = "-- THIS IS A COMMENT\n" +
+                statement + " --inline;!comment\n" +
+                "-- EndComment";
         prepareAssets(new String[][]{
                 {"201605161149_Initial_setup.sql",
-                        "-- THIS IS A COMMENT\n" +
-                                statement + " --inline;!comment\n" +
-                                "-- EndComment"}
+                        migrationContent}
         });
 
         migrationManager.run();
@@ -219,6 +220,22 @@ public class MigrationManagerTest {
         inOrder.verify(sqlExecutable).execSQL(statement);
         inOrder.verify(sqlExecutable, never()).execSQL("-- EndComment;");
         inOrder.verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
-                " (201605161149, 'Initial setup', '" + statement + "');");
+                " (201605161149, 'Initial setup', '" + migrationContent + "');");
+    }
+
+    @Test
+    public void shouldStripQuotesOnSchemaInsertion() throws Exception {
+        String statementWithQuotes = "INSERT INTO Foobar(id, name) VALUES (1, 'KungFu');";
+        String statementWithoutQuotes = "INSERT INTO Foobar(id, name) VALUES (1, ''KungFu'');";
+        prepareAssets(new String[][]{
+                {"201605161149_Initial_setup.sql",
+                        statementWithQuotes}
+        });
+
+        migrationManager.run();
+
+        verify(sqlExecutable).execSQL(statementWithQuotes);
+        verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
+                " (201605161149, 'Initial setup', '" + statementWithoutQuotes + "');");
     }
 }
