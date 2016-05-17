@@ -11,6 +11,8 @@ public class Constants {
     public final static String SHARED_PREFERENCES_PREVIOUS_CELL = "previousCellInfo";
     public final static String SHARED_PREFERENCES_CURRENT_CELL = "currentCellInfo";
 
+    public static final String MIGRATION_FILE_PATH = "db/migration";
+
     private Constants() {
 
     }

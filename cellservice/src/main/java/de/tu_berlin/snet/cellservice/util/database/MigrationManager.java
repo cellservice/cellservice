@@ -15,13 +15,14 @@ import java.util.Collections;
  * Created by Friedhelm Victor on 5/13/16.
  */
 public class MigrationManager {
-    public static final String MIGRATION_FILE_PATH = "db/migration";
     private Context context;
     private SQLExecutable database;
+    private String migrationFilePath;
 
-    public MigrationManager(Context context, SQLExecutable database) {
+    public MigrationManager(Context context, SQLExecutable database, String migrationFilePath) {
         this.context = context;
         this.database = database;
+        this.migrationFilePath = migrationFilePath;
     }
 
     public void initialize() {
@@ -67,7 +68,7 @@ public class MigrationManager {
     }
 
     private ArrayList<Migration> getTrueMigrationsFromFiles() {
-        String[] files = retrieveTrueMigrationFiles(MIGRATION_FILE_PATH);
+        String[] files = retrieveTrueMigrationFiles(migrationFilePath);
         ArrayList<Migration> migrations = new ArrayList<Migration>();
         for (String file : files) {
             migrations.add(getMigrationFromFilename(file));
@@ -134,7 +135,7 @@ public class MigrationManager {
         StringBuilder sqlBuilder = new StringBuilder();
         try {
             reader = new BufferedReader(
-                    new InputStreamReader(context.getAssets().open(MIGRATION_FILE_PATH + "/" + filename)));
+                    new InputStreamReader(context.getAssets().open(migrationFilePath + "/" + filename)));
 
             // do reading, loop until end of file reading adding newlines except for the last line
             String mLine;

@@ -19,6 +19,7 @@ import de.tu_berlin.snet.cellservice.model.record.LocationUpdate;
 import de.tu_berlin.snet.cellservice.model.record.TextMessage;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 import de.tu_berlin.snet.cellservice.model.FakeCellInfo;
+import de.tu_berlin.snet.cellservice.util.Constants;
 import de.tu_berlin.snet.cellservice.util.database.MigrationManager;
 import de.tu_berlin.snet.cellservice.util.database.SQLExecutable;
 import jsqlite.Database;
@@ -35,7 +36,6 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     private static final String TAG = "GEODBH";
     private static final String TAG_SL = TAG + "_JSQLITE";
     private static String DB_PATH = Environment.getExternalStorageDirectory().getPath();
-    //private static String DB_PATH = "/data/data/de.tu_berlin.snet.cellservice/databases";
     private static String DB_NAME = "spatial.sqlite";
     private Database mDb;
     private static GeoDatabaseHelper sInstance;
@@ -79,7 +79,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
             e.printStackTrace();
         }
 
-        MigrationManager migrationManager = new MigrationManager(context, this);
+        MigrationManager migrationManager = new MigrationManager(context, this, Constants.MIGRATION_FILE_PATH);
         migrationManager.initialize();
         migrationManager.run();
     }
