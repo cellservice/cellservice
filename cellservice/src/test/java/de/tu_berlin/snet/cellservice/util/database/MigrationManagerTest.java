@@ -14,15 +14,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +49,14 @@ public class MigrationManagerTest {
                             "  mnc INTEGER,\n" +
                             "  mcc INTEGER,\n" +
                             "  technology INTEGER\n" +
+                            "); \n" +
+                            "CREATE TABLE IF NOT EXISTS Measurements (\n" +
+                            "  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n" +
+                            "  cell_id INTEGER REFERENCES Cells(id),\n" +
+                            "  provider TEXT,\n" +
+                            "  accuracy REAL,\n" +
+                            "  event TEXT,\n" +
+                            "  time INTEGER\n" +
                             ");"},
             {"201605201159_Add_data_records_table.sql", // is OK
                     "CREATE TABLE IF NOT EXISTS DataRecords (\n" +
@@ -83,18 +90,22 @@ public class MigrationManagerTest {
     public void setUp() throws Exception {
         PowerMockito.mockStatic(Log.class); // To avoid errors in regards to Log methods
 
-        String[] fileNames = new String[assetFiles.length];
-        for(int i = 0; i < assetFiles.length; i++) {
-            when(assetManager.open(MigrationManager.MIGRATION_FILE_PATH+"/"+assetFiles[i][0])).thenReturn(
-                    new ByteArrayInputStream(assetFiles[i][1].getBytes(Charset.forName("UTF-8"))));
-            fileNames[i] = assetFiles[i][0];
-        }
-        doReturn(fileNames).when(assetManager).list(anyString());
+        prepareAssets(assetFiles);
 
         when(context.getAssets()).thenReturn(assetManager);
         when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(null);
         migrationManager = new MigrationManager(context, sqlExecutable);
 
+    }
+
+    private void prepareAssets(String[][] assetFiles) throws IOException {
+        String[] fileNames = new String[assetFiles.length];
+        for (int i = 0; i < assetFiles.length; i++) {
+            when(assetManager.open(MigrationManager.MIGRATION_FILE_PATH + "/" + assetFiles[i][0])).thenReturn(
+                    new ByteArrayInputStream(assetFiles[i][1].getBytes(Charset.forName("UTF-8"))));
+            fileNames[i] = assetFiles[i][0];
+        }
+        doReturn(fileNames).when(assetManager).list(anyString());
     }
 
     @Test
@@ -108,7 +119,8 @@ public class MigrationManagerTest {
         assertEquals(migrationManager.getAppliedMigrations().size(), 0);
 
         migrationManager.run();
-        verify(sqlExecutable).execSQL(assetFiles[0][1]);
+        verify(sqlExecutable).execSQL(assetFiles[0][1].split(";")[0] + ";");
+        verify(sqlExecutable).execSQL(assetFiles[0][1].split(";")[1] + ";");
         verify(sqlExecutable).execSQL(assetFiles[1][1]);
         verify(sqlExecutable).execSQL(assetFiles[3][1]);
     }
@@ -119,7 +131,8 @@ public class MigrationManagerTest {
         InOrder inOrder = inOrder(sqlExecutable);
 
         migrationManager.run();
-        inOrder.verify(sqlExecutable).execSQL(assetFiles[0][1]);
+        inOrder.verify(sqlExecutable).execSQL(assetFiles[0][1].split(";")[0] + ";");
+        inOrder.verify(sqlExecutable).execSQL(assetFiles[0][1].split(";")[1] + ";");
         inOrder.verify(sqlExecutable).execSQL(assetFiles[1][1]);
         inOrder.verify(sqlExecutable).execSQL(assetFiles[3][1]);
     }
@@ -129,20 +142,20 @@ public class MigrationManagerTest {
     public void shouldExecuteUpdateOnSchemaVersionTableForValidMigrations() throws Exception {
         migrationManager.run();
         verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
-                " (201605161149, 'Initial setup', '"+assetFiles[0][1]+"');");
+                " (201605161149, 'Initial setup', '" + assetFiles[0][1] + "');");
         verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
-                " (201605201159, 'Add data records table', '"+assetFiles[1][1]+"');");
+                " (201605201159, 'Add data records table', '" + assetFiles[1][1] + "');");
         verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
-                " (201612141800, 'ChristmasMigration', '"+assetFiles[3][1]+"');");
+                " (201612141800, 'ChristmasMigration', '" + assetFiles[3][1] + "');");
 
         verify(sqlExecutable, never()).execSQL("INSERT INTO SchemaVersions(timestamp, title, sql) VALUES" +
-                " (201605201159, 'Add data records table(2)', '"+assetFiles[2][1]+"');");
+                " (201605201159, 'Add data records table(2)', '" + assetFiles[2][1] + "');");
     }
 
     // should not execute something if current state is higher
     @Test
     public void shouldNotExecuteOlderMigrationIfNewerApplied() throws Exception {
-        when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(new String[][] {
+        when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(new String[][]{
                 {"201605161149", "Initial setup", assetFiles[0][1]},
                 {"201612141800", "ChristmasMigration", assetFiles[3][1]}
         });
@@ -154,7 +167,7 @@ public class MigrationManagerTest {
 
     @Test
     public void shouldHaveLastMigrationOnChristmas() throws Exception {
-        when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(new String[][] {
+        when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(new String[][]{
                 {"201605161149", "Initial setup", assetFiles[0][1]},
                 {"201612141800", "ChristmasMigration", assetFiles[3][1]}
         });
@@ -163,7 +176,7 @@ public class MigrationManagerTest {
 
     @Test
     public void shouldApplyRemainingMigrationsIfSomeExist() throws Exception {
-        when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(new String[][] {
+        when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(new String[][]{
                 {"201605161149", "Initial setup", assetFiles[0][1]}});
 
         InOrder inOrder = inOrder(sqlExecutable);
@@ -171,10 +184,10 @@ public class MigrationManagerTest {
 
         inOrder.verify(sqlExecutable).execSQL(assetFiles[1][1]);
         inOrder.verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
-                " (201605201159, 'Add data records table', '"+assetFiles[1][1]+"');");
+                " (201605201159, 'Add data records table', '" + assetFiles[1][1] + "');");
         inOrder.verify(sqlExecutable).execSQL(assetFiles[3][1]);
         inOrder.verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
-                " (201612141800, 'ChristmasMigration', '"+assetFiles[3][1]+"');");
+                " (201612141800, 'ChristmasMigration', '" + assetFiles[3][1] + "');");
     }
 
     @Test
@@ -188,5 +201,24 @@ public class MigrationManagerTest {
                 "  title TEXT," +
                 "  sql TEXT" +
                 ");");
+    }
+
+    @Test
+    public void shouldStripAwayCommentsFromSQLStatements() throws Exception {
+        String statement = "DROP TABLE Calls;";
+        prepareAssets(new String[][]{
+                {"201605161149_Initial_setup.sql",
+                        "-- THIS IS A COMMENT\n" +
+                                statement + " --inline;!comment\n" +
+                                "-- EndComment"}
+        });
+
+        migrationManager.run();
+
+        InOrder inOrder = inOrder(sqlExecutable);
+        inOrder.verify(sqlExecutable).execSQL(statement);
+        inOrder.verify(sqlExecutable, never()).execSQL("-- EndComment;");
+        inOrder.verify(sqlExecutable).execSQL("INSERT INTO SchemaVersion(timestamp, title, sql) VALUES" +
+                " (201605161149, 'Initial setup', '" + statement + "');");
     }
 }

@@ -23,12 +23,25 @@ public class Migration implements Comparable<Migration>{
         return this.title;
     }
 
-    public String getSqlStatements() {
-        return this.sqlStatements;
+    public String getSqlStatement() {
+        return stripComments(this.sqlStatements);
+    }
+
+    public String[] getSqlStatements() {
+        String[] partialStatements = getSqlStatement().split(";");
+        for(int i=0; i<partialStatements.length; i++) {
+            partialStatements[i] = partialStatements[i] + ";";
+        }
+        return partialStatements;
+    }
+
+    private String stripComments(String sqlStatements) {
+        //return sqlStatements.replaceAll("--.*?\n","");
+        return sqlStatements.replaceAll("(\n)*--(.*)(\n)*","").trim();
     }
 
     public String getSqlStatementsEscaped() {
-        return this.sqlStatements.replaceAll("'","''");
+        return getSqlStatement().replaceAll("'","''");
     }
 
     @Override

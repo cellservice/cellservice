@@ -35,7 +35,10 @@ public class MigrationManager {
 
     public void run() {
         for (Migration migration : getApplicableMigrations()) {
-            database.execSQL(migration.getSqlStatements());
+            for(String partialMigration : migration.getSqlStatements()) {
+                Log.e("MIGRATION","Executing: "+partialMigration);
+                database.execSQL(partialMigration);
+            }
             String insertSchemaLog = "INSERT INTO SchemaVersion(timestamp, title, sql) VALUES " +
                     "("+migration.getTime()+", '"+migration.getTitle()+"', '"+migration.getSqlStatementsEscaped()+"');";
             database.execSQL(insertSchemaLog);
