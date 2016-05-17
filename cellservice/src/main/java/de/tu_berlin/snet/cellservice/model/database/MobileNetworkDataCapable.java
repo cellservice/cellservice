@@ -19,7 +19,8 @@ public interface MobileNetworkDataCapable {
     boolean insertRecord(Handover handover, int callId);
     boolean insertRecord(LocationUpdate locationUpdate);
     boolean insertRecord(Data data);
-    boolean insertMeasurement(CellInfo cellInfo, String event);
+    boolean insertRecord(CellInfo cellInfo);
+    boolean insertMeasurements(CellInfo cellInfo, int eventId, int eventType);
 
     Date[] getLastThreeDates();
 
