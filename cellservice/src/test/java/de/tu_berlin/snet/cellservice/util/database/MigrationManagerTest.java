@@ -17,6 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import de.tu_berlin.snet.cellservice.util.Constants;
+
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -94,14 +96,14 @@ public class MigrationManagerTest {
 
         when(context.getAssets()).thenReturn(assetManager);
         when(sqlExecutable.getSQLTableResult("SELECT timestamp, title, sql FROM SchemaVersion;")).thenReturn(null);
-        migrationManager = new MigrationManager(context, sqlExecutable);
+        migrationManager = new MigrationManager(context, sqlExecutable, Constants.MIGRATION_FILE_PATH);
 
     }
 
     private void prepareAssets(String[][] assetFiles) throws IOException {
         String[] fileNames = new String[assetFiles.length];
         for (int i = 0; i < assetFiles.length; i++) {
-            when(assetManager.open(MigrationManager.MIGRATION_FILE_PATH + "/" + assetFiles[i][0])).thenReturn(
+            when(assetManager.open(Constants.MIGRATION_FILE_PATH + "/" + assetFiles[i][0])).thenReturn(
                     new ByteArrayInputStream(assetFiles[i][1].getBytes(Charset.forName("UTF-8"))));
             fileNames[i] = assetFiles[i][0];
         }
@@ -110,7 +112,7 @@ public class MigrationManagerTest {
 
     @Test
     public void shouldOnlyListMatchingMigrations() throws Exception {
-        assertEquals(migrationManager.retrieveTrueMigrationFiles(MigrationManager.MIGRATION_FILE_PATH).length, 3);
+        assertEquals(migrationManager.retrieveTrueMigrationFiles(Constants.MIGRATION_FILE_PATH).length, 3);
     }
 
     @Test
