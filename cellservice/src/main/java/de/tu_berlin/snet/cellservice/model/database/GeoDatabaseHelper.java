@@ -9,9 +9,11 @@ import android.util.Log;
 import java.io.File;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Future;
 
+import de.tu_berlin.snet.cellservice.CDRDatabaseInsertionListener;
 import de.tu_berlin.snet.cellservice.model.record.Call;
 import de.tu_berlin.snet.cellservice.model.record.Data;
 import de.tu_berlin.snet.cellservice.model.record.Handover;
@@ -39,6 +41,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     private static String DB_NAME = "spatial.sqlite";
     private Database mDb;
     private static GeoDatabaseHelper sInstance;
+    private List<CDRDatabaseInsertionListener> listeners = new ArrayList<CDRDatabaseInsertionListener>();
 
     private final String cellExistsQuery =
             "SELECT id FROM Cells" +
@@ -82,6 +85,14 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         MigrationManager migrationManager = new MigrationManager(context, this, Constants.MIGRATION_FILE_PATH);
         migrationManager.initialize();
         migrationManager.run();
+    }
+
+    public void addListener(CDRDatabaseInsertionListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(CDRDatabaseInsertionListener listener) {
+        listeners.remove(listener);
     }
 
 
@@ -146,6 +157,10 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         for (Handover handover : call.getHandovers()) {
             insertRecord(handover, callId);
         }
+
+        // Notify listeners
+        for (CDRDatabaseInsertionListener l : listeners) l.onCallRecordInserted(call, callId);
+
         return false;
     }
 
@@ -163,6 +178,10 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
         int messageId = getPrimaryKey(textMessage);
         insertMeasurements(cellInfo, messageId, TEXT);
+
+        // Notify listeners
+        for (CDRDatabaseInsertionListener l : listeners) l.onTextMessageInserted(textMessage, messageId);
+
         return false;
     }
 
@@ -181,6 +200,9 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
         insertMeasurements(handover.getStartCell(), handoverId, HANDOVER);
         insertMeasurements(handover.getEndCell(), handoverId, HANDOVER);
+
+        // Notify listeners
+        for (CDRDatabaseInsertionListener l : listeners) l.onHandoverInserted(handover, handoverId);
 
         return false;
     }
@@ -201,6 +223,9 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         insertMeasurements(locationUpdate.getStartCell(), locationUpdateId, LOCATION_UPDATE);
         insertMeasurements(locationUpdate.getEndCell(), locationUpdateId, LOCATION_UPDATE);
 
+        // Notify listeners
+        for (CDRDatabaseInsertionListener l : listeners) l.onLocationUpdateInserted(locationUpdate, locationUpdateId);
+
         return false;
     }
 
@@ -218,6 +243,10 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         int dataId = getPrimaryKey(data);
 
         insertMeasurements(cellInfo, dataId, DATA);
+
+        // Notify listeners
+        for (CDRDatabaseInsertionListener l : listeners) l.onDataSessionInserted(data, dataId);
+
         return false;
     }
 
@@ -238,8 +267,12 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         String technology = String.valueOf(cellInfo.getConnectionType());
 
         execSQL(insertCellStatement, cid, lac, mnc, mcc, technology);
-        final int cellRecordId = getPrimaryKey(cellInfo);
-        Log.e("DB", "INSERTED CELL " + cellRecordId);
+        final int cellInfoId = getPrimaryKey(cellInfo);
+        Log.e("DB", "INSERTED CELL " + cellInfoId);
+
+        // Notify listeners
+        for (CDRDatabaseInsertionListener l : listeners) l.onCellInfoInserted(cellInfo, cellInfoId);
+
         return true;
     }
 
