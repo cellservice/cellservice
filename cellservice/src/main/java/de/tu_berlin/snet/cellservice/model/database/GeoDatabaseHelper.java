@@ -591,7 +591,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
     }
 
     @Override
-    public ArrayList<LocationUpdate> geAlltLocationUpdateRecords() {
+    public ArrayList<LocationUpdate> geAllLocationUpdateRecords() {
         ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
         final String selectLocationUpdatesByDate =
                 "SELECT startcell, endcell, time FROM LocationUpdates;";

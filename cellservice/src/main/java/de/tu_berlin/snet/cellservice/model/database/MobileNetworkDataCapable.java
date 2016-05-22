@@ -37,7 +37,7 @@ public interface MobileNetworkDataCapable {
     ArrayList<Handover> getHandoverRecords(Date day);
     ArrayList<Handover> getHandoverRecords(Date from, Date to);
 
-    ArrayList<LocationUpdate> geAlltLocationUpdateRecords();
+    ArrayList<LocationUpdate> geAllLocationUpdateRecords();
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date day);
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to);
 
