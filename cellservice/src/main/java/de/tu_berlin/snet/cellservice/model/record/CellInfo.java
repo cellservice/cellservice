@@ -8,10 +8,16 @@ import java.util.ArrayList;
 import java.util.concurrent.Future;
 
 public class CellInfo {
-    private int cellId, lac, mnc, mcc, connectionType;
+    private long id;
+    private int cellId;
+    private int lac;
+    private int mnc;
+    private int mcc;
+    private int connectionType;
     private ArrayList<Future<Location>> futureLocations;
 
-    public CellInfo(int cellId, int lac, int mnc, int mcc, int connectionType) {
+    public CellInfo(long id, int cellId, int lac, int mnc, int mcc, int connectionType) {
+        this.id = id;
         this.cellId = cellId;
         this.lac = lac;
         this.mnc = mnc;
@@ -21,6 +27,7 @@ public class CellInfo {
     }
 
     public CellInfo(CellInfo cellInfo) {
+        this.id = cellInfo.getId();
         this.cellId = cellInfo.getCellId();
         this.lac = cellInfo.getLac();
         this.mnc = cellInfo.getMnc();
@@ -70,6 +77,9 @@ public class CellInfo {
         }
     }
 
+    public long getId() {
+        return id;
+    }
 
     public int getCellId() {
         return cellId;

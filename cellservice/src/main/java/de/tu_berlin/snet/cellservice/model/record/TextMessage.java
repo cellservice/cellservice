@@ -9,14 +9,12 @@ public class TextMessage extends AbstractCallOrText {
     private CellInfo cell;
     private long time;
 
-    public TextMessage(CellInfo cell, String direction, String address) {
-        setDirection(direction);
-        setAddress(address);
-        setCell(cell);
-        setTime(System.currentTimeMillis()/1000);
+    public TextMessage(long id, CellInfo cell, String direction, String address) {
+        this(id, cell, direction, address, System.currentTimeMillis() / 1000);
     }
 
-    public TextMessage(CellInfo cell, String direction, String address, long time) {
+    public TextMessage(long id, CellInfo cell, String direction, String address, long time) {
+        setId(id);
         setDirection(direction);
         setAddress(address);
         setCell(cell);
@@ -36,7 +34,7 @@ public class TextMessage extends AbstractCallOrText {
     }
 
     public void setTime(long time) {
-        if(!Check.Time.isBetween2016and2025(time)) {
+        if (!Check.Time.isBetween2016and2025(time)) {
             throw new IllegalArgumentException("not a valid epoch timestamp between 2016 and 2025");
         }
         this.time = time;

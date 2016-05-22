@@ -388,14 +388,14 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
     public CellInfo getCellById(long id) {
         String getCellByIdStatement =
-                "SELECT cellid, lac, mnc, mcc, technology" +
+                "SELECT id, cellid, lac, mnc, mcc, technology" +
                 "   FROM Cells" +
                 "   WHERE id = %d;";
         try {
             TableResult result = mDb.get_table(String.format(getCellByIdStatement, id));
             String[] fields = (String[]) result.rows.get(0);
-            return new CellInfo(Integer.parseInt(fields[0]), Integer.parseInt(fields[1]),
-                    Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
+            return new CellInfo(Long.parseLong(fields[0]), Integer.parseInt(fields[1]), Integer.parseInt(fields[2]),
+                    Integer.parseInt(fields[3]), Integer.parseInt(fields[4]), Integer.parseInt(fields[5]));
         } catch (Exception e) {
             e.printStackTrace();
             return new FakeCellInfo();
@@ -405,18 +405,14 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     private ArrayList<Handover> getHandoversByCallId(long id) {
         ArrayList<Handover> handovers = new ArrayList<Handover>();
         String getHandoverByCallIdStatement =
-                "SELECT startcell, endcell, time" +
+                "SELECT id, startcell, endcell, time" +
                 "   FROM Handovers" +
                 "   WHERE call_id = %d;";
         try {
             TableResult result = mDb.get_table(String.format(getHandoverByCallIdStatement, id));
             Vector<String[]> rows = result.rows;
             for (String[] fields : rows) {
-                CellInfo startCell = getCellById(Long.valueOf(fields[0]));
-                CellInfo endCell = getCellById(Long.valueOf(fields[1]));
-                long timestamp = Long.valueOf(fields[2]);
-                Handover handover = new Handover(startCell, endCell);
-                handover.setTimestamp(timestamp);
+                Handover handover = parseHandover(fields);
                 handovers.add(handover);
             }
         } catch (Exception e) {
@@ -499,11 +495,11 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         long call_id = Long.valueOf(fields[0]);
         String direction = fields[1];
         String address = fields[2];
-        long starttime = Long.valueOf(fields[3]);
-        long endtime = Long.valueOf(fields[4]);
+        long startTime = Long.valueOf(fields[3]);
+        long endTime = Long.valueOf(fields[4]);
         CellInfo startCell = getCellById(Long.valueOf(fields[5]));
 
-        Call call = new Call(startCell, direction, address, new ArrayList<Handover>(), starttime, endtime);
+        Call call = new Call(call_id, startCell, direction, address, new ArrayList<Handover>(), startTime, endTime);
         for (Handover handover : getHandoversByCallId(call_id)) {
             call.addHandover(handover);
         }
@@ -515,7 +511,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<TextMessage> getAllTextMessageRecords() {
         ArrayList<TextMessage> textMessages = new ArrayList<TextMessage>();
         final String selectTextMessagesByDate =
-                "SELECT direction, address, time, cell_id" +
+                "SELECT id, direction, address, time, cell_id" +
                 "   FROM TextMessages;";
         try {
             TableResult tableResult = mDb.get_table(selectTextMessagesByDate);
@@ -539,7 +535,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<TextMessage> getTextMessageRecords(Date from, Date to) {
         ArrayList<TextMessage> textMessages = new ArrayList<TextMessage>();
         final String selectTextMessagesByDate =
-                "SELECT direction, address, time, cell_id" +
+                "SELECT id, direction, address, time, cell_id" +
                 "   FROM TextMessages" +
                 "   WHERE date(time, 'unixepoch', 'localtime') >= '" + from.toString() + "'" +
                 "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
@@ -558,18 +554,19 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
     @NonNull
     private TextMessage parseTextMessage(String[] fields) {
-        String direction = fields[0];
-        String address = fields[1];
-        long time = Long.valueOf(fields[2]);
-        CellInfo cell = getCellById(Long.valueOf(fields[3]));
-        return new TextMessage(cell, direction, address, time);
+        long id = Long.parseLong(fields[0]);
+        String direction = fields[1];
+        String address = fields[2];
+        long time = Long.valueOf(fields[3]);
+        CellInfo cell = getCellById(Long.valueOf(fields[4]));
+        return new TextMessage(id, cell, direction, address, time);
     }
 
     @Override
     public ArrayList<Handover> getAllHandoverRecords() {
         ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
         final String selectHandoversByDate =
-                "SELECT startcell, endcell, time FROM Handovers;";
+                "SELECT id, startcell, endcell, time FROM Handovers;";
         try {
             TableResult result = mDb.get_table(selectHandoversByDate);
             Vector<String[]> rows = result.rows;
@@ -587,10 +584,11 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
     @NonNull
     private Handover parseHandover(String[] row) {
-        CellInfo startCell = getCellById(Long.parseLong(row[0]));
-        CellInfo endCell = getCellById(Long.parseLong(row[1]));
-        Handover handover = new Handover(startCell, endCell);
-        handover.setTimestamp(Long.parseLong(row[2]));
+        long id = Long.parseLong(row[0]);
+        CellInfo startCell = getCellById(Long.parseLong(row[1]));
+        CellInfo endCell = getCellById(Long.parseLong(row[2]));
+        Handover handover = new Handover(id, startCell, endCell);
+        handover.setTimestamp(Long.parseLong(row[3]));
         return handover;
     }
 
@@ -603,7 +601,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<Handover> getHandoverRecords(Date from, Date to) {
         ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
         final String selectHandoversByDate =
-                "SELECT startcell, endcell, time FROM Handovers" +
+                "SELECT id, startcell, endcell, time FROM Handovers" +
                 "   WHERE date(time, 'unixepoch', 'localtime') >= '" + from.toString() + "'" +
                 "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
         try {
@@ -625,7 +623,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<LocationUpdate> geAlltLocationUpdateRecords() {
         ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
         final String selectLocationUpdatesByDate =
-                "SELECT startcell, endcell, time FROM LocationUpdates;";
+                "SELECT id, startcell, endcell, time FROM LocationUpdates;";
         try {
             TableResult result = mDb.get_table(selectLocationUpdatesByDate);
             Vector<String[]> rows = result.rows;
@@ -643,10 +641,11 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
     @NonNull
     private LocationUpdate parseLocationUpdate(String[] row) {
-        CellInfo startCell = getCellById(Long.parseLong(row[0]));
-        CellInfo endCell = getCellById(Long.parseLong(row[1]));
-        LocationUpdate locationUpdate = new LocationUpdate(startCell, endCell);
-        locationUpdate.setTimestamp(Long.parseLong(row[2]));
+        long id = Long.parseLong(row[0]);
+        CellInfo startCell = getCellById(Long.parseLong(row[1]));
+        CellInfo endCell = getCellById(Long.parseLong(row[2]));
+        LocationUpdate locationUpdate = new LocationUpdate(id, startCell, endCell);
+        locationUpdate.setTimestamp(Long.parseLong(row[3]));
         return locationUpdate;
     }
 
@@ -681,7 +680,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<Data> getAllDataRecords() {
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
-                "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords;";
+                "SELECT id, rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords;";
         try {
             TableResult result = mDb.get_table(selectDataRecordByDate);
             Vector<String[]> rows = result.rows;
@@ -706,7 +705,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<Data> getDataRecords(Date from, Date to) {
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
-                "SELECT rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords" +
+                "SELECT id, rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords" +
                 "   WHERE date(starttime, 'unixepoch', 'localtime') >= '" + from.toString() + "'" +
                 "   AND date(endtime, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
         try {
@@ -726,7 +725,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
     @NonNull
     private Data parseDataRecord(String[] row) {
-        CellInfo cellInfo = getCellById(Long.parseLong(row[4]));
-        return new Data(cellInfo, Long.parseLong(row[0]), Long.parseLong(row[1]), Long.parseLong(row[2]), Long.parseLong(row[3]));
+        CellInfo cellInfo = getCellById(Long.parseLong(row[5]));
+        return new Data(Long.parseLong(row[0]), cellInfo, Long.parseLong(row[1]), Long.parseLong(row[2]), Long.parseLong(row[3]), Long.parseLong(row[4]));
     }
 }
