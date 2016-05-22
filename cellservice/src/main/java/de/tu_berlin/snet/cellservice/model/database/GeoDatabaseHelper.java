@@ -315,7 +315,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<Measurement> getAllMeasurements() {
         ArrayList<Measurement> measurementsArrayList = new ArrayList<Measurement>();
         final String selectAllMeasurements =
-                "SELECT cell_id, provider, accuracy, time, event_id, event_type" +
+                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type" +
                         "   FROM Measurements;";
         try {
             TableResult tableResult = mDb.get_table(selectAllMeasurements);
@@ -331,13 +331,14 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     }
 
     private Measurement parseMeasurement(String[] fields) {
-        int cellID = Integer.valueOf(fields[0]);
-        String provider = fields[1];
-        double accuracy = Double.valueOf(fields[2]);
-        long time = Long.valueOf(fields[3]);
-        int eventID = Integer.valueOf(fields[4]);
-        int eventType = Integer.valueOf(fields[5]);
-        return new Measurement(cellID, provider, accuracy, time, eventID, eventType);
+        long id = Long.parseLong(fields[0]);
+        int cellID = Integer.valueOf(fields[1]);
+        String provider = fields[2];
+        double accuracy = Double.valueOf(fields[3]);
+        long time = Long.valueOf(fields[4]);
+        int eventID = Integer.valueOf(fields[5]);
+        int eventType = Integer.valueOf(fields[6]);
+        return new Measurement(id, cellID, provider, accuracy, time, eventID, eventType);
     }
 
     private int getPrimaryKey(CellInfo cellInfo) {

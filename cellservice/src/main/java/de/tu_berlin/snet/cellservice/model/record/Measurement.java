@@ -6,6 +6,7 @@ import jsqlite.Blob;
  * @author Markus Paeschke (markus.paeschke@gmail.com)
  */
 public class Measurement {
+    private long id;
     private int cell_id;
     private String provider;
     private double accuracy;
@@ -14,13 +15,22 @@ public class Measurement {
     private int event_id;
     private int event_type;
 
-    public Measurement(int cell_id, String provider, double accuracy, long time, int event_id, int event_type) {
+    public Measurement(long id, int cell_id, String provider, double accuracy, long time, int event_id, int event_type) {
+        this.id = id;
         this.cell_id = cell_id;
         this.provider = provider;
         this.accuracy = accuracy;
         this.time = time;
         this.event_id = event_id;
         this.event_type = event_type;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public int getCell_id() {
