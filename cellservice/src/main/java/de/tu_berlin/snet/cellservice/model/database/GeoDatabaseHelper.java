@@ -373,6 +373,35 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable {
         }
     }
 
+    public ArrayList<CellInfo> getAllCellRecords() {
+        ArrayList<CellInfo> cellInfoArrayList = new ArrayList<CellInfo>();
+        final String selectAllCells =
+                "SELECT cellid, lac, mnc, mcc, technology" +
+                        "   FROM Cells;";
+        try {
+            TableResult tableResult = mDb.get_table(selectAllCells);
+            Vector<String[]> rows = tableResult.rows;
+            for(String[] fields : rows) {
+                CellInfo cellInfo = parseCell(fields);
+                cellInfoArrayList.add(cellInfo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return cellInfoArrayList;
+    }
+
+    @NonNull
+    private CellInfo parseCell(String[] fields) {
+        int cellid = Integer.valueOf(fields[0]);
+        int lac = Integer.valueOf(fields[1]);
+        int mnc = Integer.valueOf(fields[2]);
+        int mcc = Integer.valueOf(fields[3]);
+        int technology = Integer.valueOf(fields[5]);
+
+        return new CellInfo(cellid, lac, mnc, mcc, technology);
+    }
+
     private ArrayList<Handover> getHandoversByCallId(long id) {
         ArrayList<Handover> handovers = new ArrayList<Handover>();
         String getHandoverByCallIdStatement =

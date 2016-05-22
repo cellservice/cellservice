@@ -25,6 +25,9 @@ public interface MobileNetworkDataCapable {
 
     Date[] getLastThreeDates();
 
+    CellInfo getCellById(long id);
+    ArrayList<CellInfo> getAllCellRecords();
+
     ArrayList<Call> getAllCallRecords();
     ArrayList<Call> getCallRecords(Date day);
     ArrayList<Call> getCallRecords(Date from, Date to);
