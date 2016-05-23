@@ -175,13 +175,15 @@ public class MobileNetworkHelper extends ContextWrapper {
     private final class TrafficStateListener implements TrafficObserver.TrafficListener {
         @Override
         public void onBytesTransferred(long rxBytes, long txBytes, long timestamp) {
-            if (mCurrentDataRecord == null) {
-                mCurrentDataRecord = new Data(mCellInfoObserver.getCurrentCellInfo(), rxBytes, txBytes);
-                CellInfo cell = mCurrentDataRecord.getCell();
-                mCurrentDataRecord.setCell(addGPSLocation(addNetworkLocation(cell, true)));
+            synchronized (MobileNetworkHelper.this) {
+                if (mCurrentDataRecord == null) {
+                    mCurrentDataRecord = new Data(mCellInfoObserver.getCurrentCellInfo(), rxBytes, txBytes);
+                    CellInfo cell = mCurrentDataRecord.getCell();
+                    mCurrentDataRecord.setCell(addGPSLocation(addNetworkLocation(cell, true)));
 
-            } else {
-                mCurrentDataRecord.addBytes(rxBytes, txBytes, timestamp);
+                } else {
+                    mCurrentDataRecord.addBytes(rxBytes, txBytes, timestamp);
+                }
             }
         }
     }
@@ -189,17 +191,19 @@ public class MobileNetworkHelper extends ContextWrapper {
     private final class CellInfoStateListener implements CellInfoObserver.CellInfoListener {
         @Override
         public void onCellLocationChanged(CellInfo oldCell, CellInfo newCell) {
-            if (mCurrentDataRecord != null) {
-                for (CDRListener l : listeners) {
-                    l.onDataSession(mCurrentDataRecord);
+            synchronized (MobileNetworkHelper.this) {
+                if (mCurrentDataRecord != null) {
+                    for (CDRListener l : listeners) {
+                        l.onDataSession(mCurrentDataRecord);
+                    }
+                    mCurrentDataRecord = null;
                 }
-                mCurrentDataRecord = null;
-            }
 
-            if (mCurrentCall != null) {
-                oldCell = addGPSLocation(addNetworkLocation(oldCell));
-                newCell = addGPSLocation(addNetworkLocation(newCell));
-                mCurrentCall.addHandover(new Handover(oldCell, newCell));
+                if (mCurrentCall != null) {
+                    oldCell = addGPSLocation(addNetworkLocation(oldCell));
+                    newCell = addGPSLocation(addNetworkLocation(newCell));
+                    mCurrentCall.addHandover(new Handover(oldCell, newCell));
+                }
             }
         }
 
