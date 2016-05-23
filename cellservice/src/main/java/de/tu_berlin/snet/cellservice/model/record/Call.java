@@ -12,6 +12,15 @@ public class Call extends AbstractCallOrText {
     private ArrayList<Handover> handovers;
     private long startTime, endTime;
 
+    public Call(CellInfo startCell, String direction, String address, ArrayList<Handover> handovers) {
+        this(-1, startCell, direction, address, handovers);
+    }
+
+    // TODO: POSSIBLY REMOVE handovers FROM CONSTRUCTOR, AS IT WILL ALMOST ALWAYS BE EMPTY - OR CREATE ADDITIONAL CONSTRUCTOR
+    public Call(long id, CellInfo startCell, String direction, String address, ArrayList<Handover> handovers) {
+        this(id, startCell, direction, address, handovers, System.currentTimeMillis()/1000, System.currentTimeMillis()/1000);
+    }
+
     public Call(long id, CellInfo startCell, String direction, String address, ArrayList<Handover> handovers, long startTime, long endTime) {
         setId(id);
         setHandovers(handovers);
@@ -20,11 +29,6 @@ public class Call extends AbstractCallOrText {
         setStartCell(startCell);
         setStartTime(startTime);
         setEndTime(endTime);
-    }
-
-    // TODO: POSSIBLY REMOVE handovers FROM CONSTRUCTOR, AS IT WILL ALMOST ALWAYS BE EMPTY - OR CREATE ADDITIONAL CONSTRUCTOR
-    public Call(long id, CellInfo startCell, String direction, String address, ArrayList<Handover> handovers) {
-        this(id, startCell, direction, address, handovers, System.currentTimeMillis()/1000, System.currentTimeMillis()/1000);
     }
 
     public CellInfo getStartCell() {

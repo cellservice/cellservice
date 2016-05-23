@@ -176,7 +176,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         @Override
         public void onBytesTransferred(long rxBytes, long txBytes, long timestamp) {
             if (mCurrentDataRecord == null) {
-                mCurrentDataRecord = new Data(0, mCellInfoObserver.getCurrentCellInfo(), rxBytes, txBytes);
+                mCurrentDataRecord = new Data(mCellInfoObserver.getCurrentCellInfo(), rxBytes, txBytes);
                 CellInfo cell = mCurrentDataRecord.getCell();
                 mCurrentDataRecord.setCell(addGPSLocation(addNetworkLocation(cell, true)));
 
@@ -199,7 +199,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             if (mCurrentCall != null) {
                 oldCell = addGPSLocation(addNetworkLocation(oldCell));
                 newCell = addGPSLocation(addNetworkLocation(newCell));
-                mCurrentCall.addHandover(new Handover(-1, oldCell, newCell));
+                mCurrentCall.addHandover(new Handover(oldCell, newCell));
             }
         }
 
@@ -209,7 +209,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             newCell = addGPSLocation(addNetworkLocation(newCell));
 
             for (CDRListener l : listeners) {
-                l.onLocationUpdate(new LocationUpdate(-1, oldCell, newCell));
+                l.onLocationUpdate(new LocationUpdate(oldCell, newCell));
             }
         }
     }
@@ -220,7 +220,7 @@ public class MobileNetworkHelper extends ContextWrapper {
             CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
             cell = addGPSLocation(addNetworkLocation(cell));
             for (CDRListener l : listeners) {
-                l.onTextMessage(new TextMessage(-1, cell, "outgoing", Anonymizer.anonymize(receiverAddress)));
+                l.onTextMessage(new TextMessage(cell, "outgoing", Anonymizer.anonymize(receiverAddress)));
             }
         }
     }
@@ -234,7 +234,7 @@ public class MobileNetworkHelper extends ContextWrapper {
                 cell = addGPSLocation(addNetworkLocation(cell));
                 // TODO: ACQUIRE THE NUMBER THE TEXT MESSAGE HAS BEEN RECEIVED FROM, INSTEAD of "secret"
                 for (CDRListener l : listeners) {
-                    l.onTextMessage(new TextMessage(-1, cell, "incoming", Anonymizer.anonymize("secret")));
+                    l.onTextMessage(new TextMessage(cell, "incoming", Anonymizer.anonymize("secret")));
                 }
             }
         }
@@ -249,7 +249,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         protected void onIncomingCallAnswered(Context ctx, String number, long start) {
             CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
             cell = addGPSLocation(addNetworkLocation(cell));
-            mCurrentCall = new Call(-1, cell, "incoming", number, new ArrayList<Handover>());
+            mCurrentCall = new Call(cell, "incoming", number, new ArrayList<Handover>());
         }
 
         @Override
@@ -268,7 +268,7 @@ public class MobileNetworkHelper extends ContextWrapper {
         protected void onOutgoingCallStarted(Context ctx, String number, long start) {
             CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
             cell = addGPSLocation(addNetworkLocation(cell));
-            mCurrentCall = new Call(-1, cell, "outgoing", number, new ArrayList<Handover>());
+            mCurrentCall = new Call(cell, "outgoing", number, new ArrayList<Handover>());
         }
 
         @Override

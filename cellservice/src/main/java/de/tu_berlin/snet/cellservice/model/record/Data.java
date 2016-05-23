@@ -13,6 +13,10 @@ public class Data {
     private long sessionEnd;
     private CellInfo cell;
 
+    public Data(CellInfo cell, long rxBytes, long txBytes) {
+        this(-1, cell, rxBytes, txBytes);
+    }
+
     public Data(long id, CellInfo cell, long rxBytes, long txBytes) {
         this(id, cell, rxBytes, txBytes, System.currentTimeMillis() / 1000, System.currentTimeMillis() / 1000);
     }

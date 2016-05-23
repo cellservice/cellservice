@@ -16,6 +16,10 @@ public class CellInfo {
     private int connectionType;
     private ArrayList<Future<Location>> futureLocations;
 
+    public CellInfo(int cellId, int lac, int mnc, int mcc, int connectionType) {
+        this(-1, cellId, lac, mnc, mcc, connectionType);
+    }
+
     public CellInfo(long id, int cellId, int lac, int mnc, int mcc, int connectionType) {
         this.id = id;
         this.cellId = cellId;
