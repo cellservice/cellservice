@@ -4,8 +4,17 @@ package de.tu_berlin.snet.cellservice.model.record;
  * Created by giraffe on 4/17/16.
  */
 public abstract class AbstractCallOrText {
+    private long id;
     private String direction;
     private String address;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getDirection() {
         return direction;

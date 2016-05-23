@@ -157,7 +157,7 @@ public class CellInfoObserver implements Observer {
             int mcc = Integer.parseInt(networkOperator.substring(0, 3));
             int mnc = Integer.parseInt(networkOperator.substring(3));
 
-            return new CellInfo(cellID, lac, mnc, mcc, tm.getNetworkType());
+            return new CellInfo(-1, cellID, lac, mnc, mcc, tm.getNetworkType());
         } catch (Exception e) {
             return new FakeCellInfo();
         }

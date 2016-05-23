@@ -6,8 +6,28 @@ import de.tu_berlin.snet.cellservice.util.validation.Check;
  * Created by giraffe on 4/16/16.
  */
 abstract class AbstractCellChange {
-    private CellInfo startCell, endCell;
+    private long id;
+    private CellInfo startCell;
+    private CellInfo endCell;
     private long timestamp;
+
+    public AbstractCellChange(long id, CellInfo startCell, CellInfo endCell) {
+        this(id, startCell, endCell, System.currentTimeMillis() / 1000);
+    }
+
+    public AbstractCellChange(long id, CellInfo startCell, CellInfo endCell, long timestamp) {
+        setStartCell(startCell);
+        setEndCell(endCell);
+        setTimestamp(timestamp);
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public CellInfo getStartCell() {
         return startCell;
@@ -44,17 +64,5 @@ abstract class AbstractCellChange {
             throw new IllegalArgumentException("not a valid epoch timestamp between 2016 and 2025");
         }
         this.timestamp = timestamp;
-    }
-
-    public AbstractCellChange(CellInfo startCell, CellInfo endCell) {
-        setStartCell(startCell);
-        setEndCell(endCell);
-        setTimestamp(System.currentTimeMillis()/1000);
-    }
-
-    public AbstractCellChange(CellInfo startCell, CellInfo endCell, long timestamp) {
-        setStartCell(startCell);
-        setEndCell(endCell);
-        setTimestamp(timestamp);
     }
 }
