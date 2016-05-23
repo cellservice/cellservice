@@ -7,6 +7,7 @@ import de.tu_berlin.snet.cellservice.model.record.Call;
 import de.tu_berlin.snet.cellservice.model.record.Data;
 import de.tu_berlin.snet.cellservice.model.record.Handover;
 import de.tu_berlin.snet.cellservice.model.record.LocationUpdate;
+import de.tu_berlin.snet.cellservice.model.record.Measurement;
 import de.tu_berlin.snet.cellservice.model.record.TextMessage;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 
@@ -46,4 +47,6 @@ public interface MobileNetworkDataCapable {
     ArrayList<Data> getAllDataRecords();
     ArrayList<Data> getDataRecords(Date day);
     ArrayList<Data> getDataRecords(Date from, Date to);
+
+    ArrayList<Measurement> getAllMeasurements();
 }

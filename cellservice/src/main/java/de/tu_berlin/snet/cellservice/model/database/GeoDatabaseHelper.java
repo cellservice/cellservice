@@ -18,6 +18,7 @@ import de.tu_berlin.snet.cellservice.model.record.Call;
 import de.tu_berlin.snet.cellservice.model.record.Data;
 import de.tu_berlin.snet.cellservice.model.record.Handover;
 import de.tu_berlin.snet.cellservice.model.record.LocationUpdate;
+import de.tu_berlin.snet.cellservice.model.record.Measurement;
 import de.tu_berlin.snet.cellservice.model.record.TextMessage;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 import de.tu_berlin.snet.cellservice.model.FakeCellInfo;
@@ -308,6 +309,36 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
             }
         }).start();
         return false;
+    }
+
+    @Override
+    public ArrayList<Measurement> getAllMeasurements() {
+        ArrayList<Measurement> measurementsArrayList = new ArrayList<Measurement>();
+        final String selectAllMeasurements =
+                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type" +
+                        "   FROM Measurements;";
+        try {
+            TableResult tableResult = mDb.get_table(selectAllMeasurements);
+            Vector<String[]> rows = tableResult.rows;
+            for (String[] fields : rows) {
+                Measurement measurement = parseMeasurement(fields);
+                measurementsArrayList.add(measurement);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return measurementsArrayList;
+    }
+
+    private Measurement parseMeasurement(String[] fields) {
+        long id = Long.parseLong(fields[0]);
+        int cellID = Integer.valueOf(fields[1]);
+        String provider = fields[2];
+        double accuracy = Double.valueOf(fields[3]);
+        long time = Long.valueOf(fields[4]);
+        int eventID = Integer.valueOf(fields[5]);
+        int eventType = Integer.valueOf(fields[6]);
+        return new Measurement(id, cellID, provider, accuracy, time, eventID, eventType);
     }
 
     private int getPrimaryKey(CellInfo cellInfo) {
