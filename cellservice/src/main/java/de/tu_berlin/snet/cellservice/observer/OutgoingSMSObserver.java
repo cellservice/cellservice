@@ -109,7 +109,7 @@ public class OutgoingSMSObserver extends ContentObserver implements Observer {
                     if(!isExistingTextMessage(md5TextMessage)) {
                         addTextMessage(md5TextMessage);
                         if(notifyListeners) {
-                            Log.e("OUTGOING SMS STUFF",String.format("to: %s at: %s writing: %s",
+                            Log.d("OUTGOING SMS STUFF",String.format("to: %s at: %s writing: %s",
                                     receiverAddress, date, body));
                             for (OutgoingSMSListener listener : listeners) {
                                 listener.onSMSSent(receiverAddress);

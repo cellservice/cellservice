@@ -33,6 +33,7 @@ import jsqlite.TableResult;
  * Created by Friedhelm Victor on 4/21/16.
  */
 public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutable {
+    private final static String LOG_TAG = GeoDatabaseHelper.class.getSimpleName();
 
     private static final int CALL = 1, HANDOVER = 2, LOCATION_UPDATE = 3, DATA = 4, TEXT = 5, UNKNOWN = -1;
     private static final String TAG = "GEODBH";
@@ -73,13 +74,13 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     private GeoDatabaseHelper(Context context) {
         try {
             File spatialDbFile = new File(DB_PATH, DB_NAME);
-            Log.e("CREATE DATABASE FILE", "PATH: " + spatialDbFile);
+            Log.d("CREATE DATABASE FILE", "PATH: " + spatialDbFile);
 
             mDb = new jsqlite.Database();
             mDb.open(spatialDbFile.getAbsolutePath(), jsqlite.Constants.SQLITE_OPEN_READWRITE
                     | jsqlite.Constants.SQLITE_OPEN_CREATE);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
 
         MigrationManager migrationManager = new MigrationManager(context, this, Constants.MIGRATION_FILE_PATH);
@@ -104,7 +105,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
             Stmt stmt = mDb.prepare(statement);
             stmt.step();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
     }
 
@@ -122,7 +123,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 return resultRows;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return null;
     }
@@ -132,7 +133,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
             Stmt stmt = mDb.prepare(String.format(statement, args));
             stmt.step();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
     }
 
@@ -293,16 +294,18 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 for (Future<Location> futureLocation : locationMeasurements) {
                     try {
                         Location location = futureLocation.get();
-                        double latitude = location.getLatitude();
-                        double longitude = location.getLongitude();
-                        float accuracy = location.getAccuracy();
-                        String provider = location.getProvider();
-                        String statement = String.format(insertMeasurementStatement, cellRecordId,
-                                provider, accuracy, longitude, latitude, location.getTime() / 1000 , eventId, eventType);
-                        Log.e(TAG_SL, "Inserting measurement sql: " + statement);
-                        execSQL(statement);
+                        if (location != null) {
+                            double latitude = location.getLatitude();
+                            double longitude = location.getLongitude();
+                            float accuracy = location.getAccuracy();
+                            String provider = location.getProvider();
+                            String statement = String.format(insertMeasurementStatement, cellRecordId,
+                                    provider, accuracy, longitude, latitude, location.getTime() / 1000, eventId, eventType);
+                            Log.e(TAG_SL, "Inserting measurement sql: " + statement);
+                            execSQL(statement);
+                        }
                     } catch (java.lang.Exception e) {
-                        e.printStackTrace();
+                        Log.d(LOG_TAG, e.getMessage());
                     }
                 }
             }
@@ -380,8 +383,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
             Vector<String[]> rows = result.rows;
             return Integer.valueOf(rows.get(0)[0]);
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find id with query: " + queryWithOneIdResult);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find id with query: " + queryWithOneIdResult);
             return -1;
         }
     }
@@ -397,7 +400,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
             return new CellInfo(Integer.parseInt(fields[0]), Integer.parseInt(fields[1]),
                     Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
             return new FakeCellInfo();
         }
     }
@@ -420,7 +423,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 handovers.add(handover);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return handovers;
     }
@@ -444,7 +447,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 result[i] = new Date(Long.valueOf(rows.get(i)[0]) * 1000);
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
             return new Date[]{};
         }
     }
@@ -463,7 +466,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 callArrayList.add(call);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return callArrayList;
     }
@@ -489,7 +492,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 callArrayList.add(call);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return callArrayList;
     }
@@ -525,7 +528,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 textMessages.add(textMessage);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return textMessages;
     }
@@ -551,7 +554,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 textMessages.add(textMessage);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return textMessages;
     }
@@ -578,8 +581,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 handoverArrayList.add(handover);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find: " + selectHandoversByDate);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find: " + selectHandoversByDate);
         }
 
         return handoverArrayList;
@@ -614,8 +617,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 handoverArrayList.add(handover);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find: " + selectHandoversByDate);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find: " + selectHandoversByDate);
         }
 
         return handoverArrayList;
@@ -634,8 +637,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 locationUpdateArrayList.add(locationUpdate);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find: " + selectLocationUpdatesByDate);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find: " + selectLocationUpdatesByDate);
         }
 
         return locationUpdateArrayList;
@@ -670,8 +673,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 locationUpdateArrayList.add(locationUpdate);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find: " + selectLocationUpdatesByDate);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find: " + selectLocationUpdatesByDate);
         }
 
         return locationUpdateArrayList;
@@ -690,8 +693,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 dataArrayList.add(data);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find: " + selectDataRecordByDate);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find: " + selectDataRecordByDate);
         }
 
         return dataArrayList;
@@ -717,8 +720,8 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
                 dataArrayList.add(data);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG_SL, "could not find: " + selectDataRecordByDate);
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(TAG_SL, "could not find: " + selectDataRecordByDate);
         }
 
         return dataArrayList;

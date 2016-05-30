@@ -18,6 +18,7 @@ import de.tu_berlin.snet.cellservice.model.record.CellInfo;
  * Created by ashish on 21.03.16.
  */
 public class LocationGoogleApiFuture implements Callable<Location>{
+    private static final String LOG_TAG = LocationGoogleApiFuture.class.getSimpleName();
 
     private Location hiddenApiLocation = null;
     private CellInfo cellInfo;
@@ -28,7 +29,6 @@ public class LocationGoogleApiFuture implements Callable<Location>{
 
     @Override
     public Location call() throws Exception {
-        String ret = "0,0";
         try {
             URL url = new URL("http://www.google.com/glm/mmap");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -59,7 +59,6 @@ public class LocationGoogleApiFuture implements Callable<Location>{
                 this.hiddenApiLocation.setLatitude(lat);
                 this.hiddenApiLocation.setLongitude(lng);
                 this.hiddenApiLocation.setAccuracy(accuracy);
-                ret = Double.toString(lat) + "," + Double.toString(lng);
                 return hiddenApiLocation;
             }
             else {
@@ -67,8 +66,8 @@ public class LocationGoogleApiFuture implements Callable<Location>{
                 //hiddenApiLocation=null;
                 return hiddenApiLocation;
             }
-        }catch (Exception e){
-            ret = e.toString();
+        } catch (Exception e){
+            Log.d(LOG_TAG, e.getMessage());
         }
         return null;
     }

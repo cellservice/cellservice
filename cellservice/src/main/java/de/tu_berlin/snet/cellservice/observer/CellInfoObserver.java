@@ -87,10 +87,10 @@ public class CellInfoObserver implements Observer {
 
         long fiveMinsAgo = System.currentTimeMillis() - fiveMinutes;
         if (fiveMinsAgo < lastTimestamp) {
-            Log.e("PERSISTENCE", "retrieving cellinfos");
-            Log.e("PERSISTENCE", String.format("retrieving cellinfos previous: %s",
+            Log.d("PERSISTENCE", "retrieving cellinfos");
+            Log.d("PERSISTENCE", String.format("retrieving cellinfos previous: %s",
                             settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, "")));
-            Log.e("PERSISTENCE", String.format("retrieving cellinfos current: %s",
+            Log.d("PERSISTENCE", String.format("retrieving cellinfos current: %s",
                     settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL, "")));
             setPreviousCellInfo(gson.fromJson(
                     settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, ""),
@@ -105,12 +105,12 @@ public class CellInfoObserver implements Observer {
     }
 
     private void persistCellInfosToPreferences() {
-        Log.e("PERSISTENCE", "saving cellinfos");
+        Log.d("PERSISTENCE", "saving cellinfos");
         SharedPreferences settings = CellService.get().getSharedPreferences(Constants.SHARED_PREFERENCES_FILE_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         Gson gson = new Gson();
 
-        Log.e("PERSISTENCE", "previousCellInfoJson: "+gson.toJson(getPreviousCellInfo()));
+        Log.d("PERSISTENCE", "previousCellInfoJson: "+gson.toJson(getPreviousCellInfo()));
         editor.putString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL,
                 gson.toJson(getPreviousCellInfo()));
         editor.putString(Constants.SHARED_PREFERENCES_CURRENT_CELL,
