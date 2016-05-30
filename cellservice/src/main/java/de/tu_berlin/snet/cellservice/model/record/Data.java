@@ -6,20 +6,36 @@ import de.tu_berlin.snet.cellservice.util.validation.Check;
  * Created by giraffe on 4/17/16.
  */
 public class Data {
-    private long rxBytes, txBytes;
-    private long sessionStart, sessionEnd;
+    private long id;
+    private long rxBytes;
+    private long txBytes;
+    private long sessionStart;
+    private long sessionEnd;
     private CellInfo cell;
 
     public Data(CellInfo cell, long rxBytes, long txBytes) {
-        this(cell, rxBytes, txBytes, System.currentTimeMillis()/1000, System.currentTimeMillis()/1000);
+        this(-1, cell, rxBytes, txBytes);
     }
 
-    public Data(CellInfo cell, long rxBytes, long txBytes, long sessionStart, long sessionEnd) {
+    public Data(long id, CellInfo cell, long rxBytes, long txBytes) {
+        this(id, cell, rxBytes, txBytes, System.currentTimeMillis() / 1000, System.currentTimeMillis() / 1000);
+    }
+
+    public Data(long id, CellInfo cell, long rxBytes, long txBytes, long sessionStart, long sessionEnd) {
+        setId(id);
         setRxBytes(rxBytes);
         setTxBytes(txBytes);
         setSessionStart(sessionStart);
         setSessionEnd(sessionEnd);
         setCell(cell);
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public long getRxBytes() {

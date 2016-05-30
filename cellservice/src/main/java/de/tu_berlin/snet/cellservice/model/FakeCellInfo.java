@@ -7,6 +7,6 @@ import de.tu_berlin.snet.cellservice.model.record.CellInfo;
  */
 public class FakeCellInfo extends CellInfo {
     public FakeCellInfo() {
-        super(-1, -1, -1, -1, -1);
+        super(-1, -1, -1, -1, -1, -1);
     }
 }
