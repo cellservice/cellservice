@@ -1,5 +1,7 @@
 package de.tu_berlin.snet.cellservice.util;
 
+import android.util.Log;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -7,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
  * Created by giraffe on 5/4/16.
  */
 public class Functions {
+    private final static String LOG_TAG = Functions.class.getSimpleName();
+
     // http://stackoverflow.com/questions/5787894/android-is-there-any-way-to-listen-outgoing-sms/5788013#5788013
     public static String md5(String in) {
         MessageDigest digest;
@@ -22,7 +26,9 @@ public class Functions {
                 sb.append(Character.forDigit(a[i] & 0x0f, 16));
             }
             return sb.toString();
-        } catch (NoSuchAlgorithmException e) { e.printStackTrace(); }
+        } catch (NoSuchAlgorithmException e) {
+            Log.d(LOG_TAG, e.getMessage());
+        }
         return null;
     }
 }

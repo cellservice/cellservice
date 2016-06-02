@@ -94,7 +94,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
     private void listenForEvents() {
-        Log.e("networkhelper", "starting");
+        Log.d("networkhelper", "starting");
 
         mTrafficObserver = TrafficObserver.getInstance();
         mTrafficObserver.start();
@@ -125,7 +125,7 @@ public class MobileNetworkHelper extends ContextWrapper {
     }
 
     private void stopListening() {
-        Log.e("networkhelper", "stopping");
+        Log.d("networkhelper", "stopping");
         mTrafficObserver.removeListener(mTrafficStateListener);
         mTrafficObserver.stop();
 

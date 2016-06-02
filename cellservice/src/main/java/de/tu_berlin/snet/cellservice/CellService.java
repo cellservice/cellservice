@@ -39,13 +39,12 @@ public class CellService extends Service {
         Toast.makeText(this, "Service is started", Toast.LENGTH_LONG).show();
         // catching data if it has been sent
         try {
-            String message;
-            message = intent.getStringExtra("key");
+            String message = intent.getStringExtra("key");
             Toast.makeText(this, "data sent to service was \"" + message + "\"", Toast.LENGTH_LONG).show();
             // otherwise catch exception
         } catch (Exception e) {
             Toast.makeText(this,
-                    String.format("didn't receive any data, but caught exception %s", e.toString()),
+                    String.format("didn't receive any data, but caught exception %s", e.getMessage()),
                     Toast.LENGTH_LONG).show();
         }
 
@@ -72,25 +71,25 @@ public class CellService extends Service {
     private final class CDRReceiver implements CDRListener {
         @Override
         public void onDataSession(Data data) {
-            Log.e("CDRReceiver", "received data: " + data);
+            Log.d("CDRReceiver", "received data: " + data);
             geoDatabaseHelper.insertRecord(data);
         }
 
         @Override
         public void onCallRecord(Call call) {
-            Log.e("CDRReceiver", "received call: " + call);
+            Log.d("CDRReceiver", "received call: " + call);
             geoDatabaseHelper.insertRecord(call);
         }
 
         @Override
         public void onTextMessage(TextMessage textMessage) {
-            Log.e("CDRReceiver", "received text: " + textMessage);
+            Log.d("CDRReceiver", "received text: " + textMessage);
             geoDatabaseHelper.insertRecord(textMessage);
         }
 
         @Override
         public void onLocationUpdate(LocationUpdate locationUpdate) {
-            Log.e("CDRReceiver", "received location update: " + locationUpdate);
+            Log.d("CDRReceiver", "received location update: " + locationUpdate);
             geoDatabaseHelper.insertRecord(locationUpdate);
         }
     }
