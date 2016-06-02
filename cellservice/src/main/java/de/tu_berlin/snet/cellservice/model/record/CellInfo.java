@@ -7,14 +7,17 @@ import android.telephony.TelephonyManager;
 import java.util.ArrayList;
 import java.util.concurrent.Future;
 
-public class CellInfo {
+import de.tu_berlin.snet.cellservice.util.serialization.ObjectSerializer;
+import de.tu_berlin.snet.cellservice.util.serialization.Serializable;
+
+public class CellInfo implements Serializable{
     private long id;
     private int cellId;
     private int lac;
     private int mnc;
     private int mcc;
     private int connectionType;
-    private ArrayList<Future<Location>> futureLocations;
+    private transient ArrayList<Future<Location>> futureLocations;
 
     public CellInfo(int cellId, int lac, int mnc, int mcc, int connectionType) {
         this(-1, cellId, lac, mnc, mcc, connectionType);
@@ -27,6 +30,10 @@ public class CellInfo {
         this.mnc = mnc;
         this.mcc = mcc;
         this.connectionType = connectionType;
+        initializeLocations();
+    }
+
+    public void initializeLocations() {
         this.futureLocations = new ArrayList<Future<Location>>();
     }
 
@@ -139,5 +146,10 @@ public class CellInfo {
     @Override
     public String toString() {
         return getCellId() + " / " + getLac();
+    }
+
+    @Override
+    public String serialize(ObjectSerializer serializer) {
+        return serializer.serialize(this);
     }
 }

@@ -9,12 +9,11 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import de.tu_berlin.snet.cellservice.CellService;
+import de.tu_berlin.snet.cellservice.util.serialization.GsonSerializer;
 import de.tu_berlin.snet.cellservice.model.record.CellInfo;
 import de.tu_berlin.snet.cellservice.model.FakeCellInfo;
 import de.tu_berlin.snet.cellservice.util.Constants;
@@ -31,6 +30,7 @@ public class CellInfoObserver implements Observer {
         void onCellLocationChanged(CellInfo oldCell, CellInfo newCell);
         void onLocationUpdate(CellInfo oldCell, CellInfo newCell);
     }
+    private GsonSerializer gsonSerializer = new GsonSerializer();
 
     private final static int fiveMinutes = 5 * 60 * 1000;
 
@@ -76,30 +76,31 @@ public class CellInfoObserver implements Observer {
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
     }
 
-    // TODO: POSSIBLE PROBLEM: WHAT IF WE ARE NEVER REGISTERED TO A NETWORK? -> NO CELLINFO!
+
+     /**
+     * Restores current and previous {@link CellInfo} from shared preferences if they are not older
+     * than 5 minutes. Otherwise they will both be set to whatever cell information is currently
+     * available.
+     */
     private void initializeOrRestoreCellInfos() {
         // Restore preferences
         SharedPreferences settings = CellService.get().getSharedPreferences(Constants.SHARED_PREFERENCES_FILE_NAME, 0);
-        Gson gson = new Gson();
         // retrieve the last timestamp. Default value is 2016-01-01 01:01:01 CET
         long lastTimestamp = settings.getLong(Constants.SHARED_PREFERENCES_LAST_TIMESTAMP,
                 Constants.SHARED_PREFERENCES_LAST_TIMESTAMP_DEFAULT);
-
         long fiveMinsAgo = System.currentTimeMillis() - fiveMinutes;
-        if (fiveMinsAgo < lastTimestamp) {
-            Log.d("PERSISTENCE", "retrieving cellinfos");
+
+        if (lastTimestamp > fiveMinsAgo) { // The last timestamp is not older than 5 minutes
             Log.d("PERSISTENCE", String.format("retrieving cellinfos previous: %s",
                             settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, "")));
             Log.d("PERSISTENCE", String.format("retrieving cellinfos current: %s",
                     settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL, "")));
-            setPreviousCellInfo(gson.fromJson(
-                    settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, ""),
-                    CellInfo.class));
-            setCurrentCellInfo(gson.fromJson(
-                    settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL,""),
-                    CellInfo.class));
+
+            setPreviousCellInfo(gsonSerializer.deSerialize(settings.getString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL, "")));
+            setCurrentCellInfo(gsonSerializer.deSerialize(settings.getString(Constants.SHARED_PREFERENCES_CURRENT_CELL, "")));
         } else {
-            setPreviousCellInfo(getNewCellInfo()); // TODO: WORKS?... SOMETIMES SETS TO FAKECELLINFO
+            // TODO: POSSIBLE PROBLEM: WHAT IF WE ARE NEVER REGISTERED TO A NETWORK? -> NO CELLINFO!
+            setPreviousCellInfo(getNewCellInfo());
             setCurrentCellInfo(getNewCellInfo());
         }
     }
@@ -108,13 +109,12 @@ public class CellInfoObserver implements Observer {
         Log.d("PERSISTENCE", "saving cellinfos");
         SharedPreferences settings = CellService.get().getSharedPreferences(Constants.SHARED_PREFERENCES_FILE_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
-        Gson gson = new Gson();
 
-        Log.d("PERSISTENCE", "previousCellInfoJson: "+gson.toJson(getPreviousCellInfo()));
+        Log.d("PERSISTENCE", "previousCellInfoJson: "+gsonSerializer.serialize(getPreviousCellInfo()));
         editor.putString(Constants.SHARED_PREFERENCES_PREVIOUS_CELL,
-                gson.toJson(getPreviousCellInfo()));
+                gsonSerializer.serialize(getPreviousCellInfo()));
         editor.putString(Constants.SHARED_PREFERENCES_CURRENT_CELL,
-                gson.toJson(getCurrentCellInfo()));
+                gsonSerializer.serialize(getCurrentCellInfo()));
 
         editor.putLong(Constants.SHARED_PREFERENCES_LAST_TIMESTAMP, System.currentTimeMillis());
 
