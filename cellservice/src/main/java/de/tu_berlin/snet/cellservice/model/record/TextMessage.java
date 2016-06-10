@@ -1,12 +1,16 @@
 package de.tu_berlin.snet.cellservice.model.record;
 
+import com.google.gson.annotations.SerializedName;
+
 import de.tu_berlin.snet.cellservice.util.validation.Check;
 
 /**
  * Created by giraffe on 4/17/16.
  */
 public class TextMessage extends AbstractCallOrText {
+    @SerializedName("cell_id")
     private CellInfo cell;
+    @SerializedName("time")
     private long time;
 
     /**

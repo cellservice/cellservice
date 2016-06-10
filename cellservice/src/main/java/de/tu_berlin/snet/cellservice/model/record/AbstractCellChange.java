@@ -1,14 +1,20 @@
 package de.tu_berlin.snet.cellservice.model.record;
 
+import com.google.gson.annotations.SerializedName;
+
 import de.tu_berlin.snet.cellservice.util.validation.Check;
 
 /**
  * Created by giraffe on 4/16/16.
  */
 abstract class AbstractCellChange {
+    @SerializedName("id")
     private long id;
+    @SerializedName("startcell")
     private CellInfo startCell;
+    @SerializedName("endcell")
     private CellInfo endCell;
+    @SerializedName("time")
     private long timestamp;
 
     public AbstractCellChange(long id, CellInfo startCell, CellInfo endCell) {

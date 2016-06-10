@@ -1,5 +1,7 @@
 package de.tu_berlin.snet.cellservice.model.record;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 
 import de.tu_berlin.snet.cellservice.util.validation.Check;
@@ -8,9 +10,13 @@ import de.tu_berlin.snet.cellservice.util.validation.Check;
  * Created by giraffe on 4/16/16.
  */
 public class Call extends AbstractCallOrText {
+    @SerializedName("startcell")
     private CellInfo startCell;
     private ArrayList<Handover> handovers;
-    private long startTime, endTime;
+    @SerializedName("starttime")
+    private long startTime;
+    @SerializedName("endtime")
+    private long endTime;
 
     public Call(CellInfo startCell, String direction, String address, ArrayList<Handover> handovers) {
         this(-1, startCell, direction, address, handovers);

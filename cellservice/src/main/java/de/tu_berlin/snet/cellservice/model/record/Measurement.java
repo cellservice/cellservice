@@ -1,18 +1,28 @@
 package de.tu_berlin.snet.cellservice.model.record;
 
+import com.google.gson.annotations.SerializedName;
+
 import jsqlite.Blob;
 
 /**
  * @author Markus Paeschke (markus.paeschke@gmail.com)
  */
 public class Measurement {
+    @SerializedName("id")
     private long id;
+    @SerializedName("cell_id")
     private int cell_id;
+    @SerializedName("provider")
     private String provider;
+    @SerializedName("accuracy")
     private double accuracy;
+    @SerializedName("centroid")
     private Blob centroid;
+    @SerializedName("time")
     private long time;
+    @SerializedName("event_id")
     private int event_id;
+    @SerializedName("event_type")
     private int event_type;
 
     public Measurement(long id, int cell_id, String provider, double accuracy, long time, int event_id, int event_type) {
