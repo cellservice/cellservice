@@ -457,7 +457,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
         int lac = Integer.valueOf(fields[1]);
         int mnc = Integer.valueOf(fields[2]);
         int mcc = Integer.valueOf(fields[3]);
-        int technology = Integer.valueOf(fields[5]);
+        int technology = Integer.valueOf(fields[4]);
 
         return new CellInfo(cellid, lac, mnc, mcc, technology);
     }
