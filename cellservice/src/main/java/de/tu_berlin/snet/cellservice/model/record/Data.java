@@ -1,16 +1,24 @@
 package de.tu_berlin.snet.cellservice.model.record;
 
+import com.google.gson.annotations.SerializedName;
+
 import de.tu_berlin.snet.cellservice.util.validation.Check;
 
 /**
  * Created by giraffe on 4/17/16.
  */
 public class Data {
+    @SerializedName("id")
     private long id;
+    @SerializedName("rxbytes")
     private long rxBytes;
+    @SerializedName("txbytes")
     private long txBytes;
+    @SerializedName("starttime")
     private long sessionStart;
+    @SerializedName("endtime")
     private long sessionEnd;
+    @SerializedName("cell_id")
     private CellInfo cell;
 
     public Data(CellInfo cell, long rxBytes, long txBytes) {

@@ -1,11 +1,16 @@
 package de.tu_berlin.snet.cellservice.model.record;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by giraffe on 4/17/16.
  */
 public abstract class AbstractCallOrText {
+    @SerializedName("id")
     private long id;
+    @SerializedName("direction")
     private String direction;
+    @SerializedName("address")
     private String address;
 
     public long getId() {

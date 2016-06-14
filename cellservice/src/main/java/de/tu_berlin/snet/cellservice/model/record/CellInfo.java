@@ -4,18 +4,26 @@ package de.tu_berlin.snet.cellservice.model.record;
 import android.location.Location;
 import android.telephony.TelephonyManager;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.concurrent.Future;
 
 import de.tu_berlin.snet.cellservice.util.serialization.ObjectSerializer;
 import de.tu_berlin.snet.cellservice.util.serialization.Serializable;
 
-public class CellInfo implements Serializable{
+public class CellInfo implements Serializable {
+    @SerializedName("id")
     private long id;
+    @SerializedName("cellid")
     private int cellId;
+    @SerializedName("lac")
     private int lac;
+    @SerializedName("mnc")
     private int mnc;
+    @SerializedName("mcc")
     private int mcc;
+    @SerializedName("technology")
     private int connectionType;
     private transient ArrayList<Future<Location>> futureLocations;
 
