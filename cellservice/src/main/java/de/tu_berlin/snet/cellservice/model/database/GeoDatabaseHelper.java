@@ -439,7 +439,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<CellInfo> getAllCellRecords() {
         ArrayList<CellInfo> cellInfoArrayList = new ArrayList<CellInfo>();
         final String selectAllCells =
-                "SELECT cellid, lac, mnc, mcc, technology" +
+                "SELECT id, cellid, lac, mnc, mcc, technology" +
                         "   FROM Cells;";
         try {
             TableResult tableResult = mDb.get_table(selectAllCells);
@@ -456,13 +456,14 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
 
     @NonNull
     private CellInfo parseCell(String[] fields) {
-        int cellid = Integer.valueOf(fields[0]);
-        int lac = Integer.valueOf(fields[1]);
-        int mnc = Integer.valueOf(fields[2]);
-        int mcc = Integer.valueOf(fields[3]);
-        int technology = Integer.valueOf(fields[4]);
+        long id = Long.parseLong(fields[0]);
+        int cellid = Integer.valueOf(fields[1]);
+        int lac = Integer.valueOf(fields[2]);
+        int mnc = Integer.valueOf(fields[3]);
+        int mcc = Integer.valueOf(fields[4]);
+        int technology = Integer.valueOf(fields[5]);
 
-        return new CellInfo(cellid, lac, mnc, mcc, technology);
+        return new CellInfo(id, cellid, lac, mnc, mcc, technology);
     }
 
     private ArrayList<Handover> getHandoversByCallId(long id) {
@@ -721,7 +722,7 @@ public class GeoDatabaseHelper implements MobileNetworkDataCapable, SQLExecutabl
     public ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to) {
         ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
         final String selectLocationUpdatesByDate =
-                "SELECT startcell, endcell, time FROM LocationUpdates" +
+                "SELECT id, startcell, endcell, time FROM LocationUpdates" +
                 "   WHERE date(time, 'unixepoch', 'localtime') >= '" + from.toString() + "'" +
                 "   AND date(time, 'unixepoch', 'localtime') <= '" + to.toString() + "';";
         try {
