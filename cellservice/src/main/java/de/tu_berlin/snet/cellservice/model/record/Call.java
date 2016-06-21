@@ -42,8 +42,8 @@ public class Call extends AbstractCallOrText {
     }
 
     private boolean startCellMatchesHandoverStart(CellInfo startCell, ArrayList<Handover> handovers) {
-        if(handovers.size() > 0) {
-            if(Check.Network.isSameCell(startCell, handovers.get(0).getStartCell())) {
+        if (handovers.size() > 0 && startCell != null) {
+            if (Check.Network.isSameCell(startCell, handovers.get(0).getStartCell())) {
                 return true;
             } else {
                 return false;
@@ -53,7 +53,7 @@ public class Call extends AbstractCallOrText {
     }
 
     public void setStartCell(CellInfo startCell) {
-        if(startCellMatchesHandoverStart(startCell, getHandovers())) {
+        if (startCellMatchesHandoverStart(startCell, getHandovers())) {
             this.startCell = startCell;
         } else {
             throw new IllegalArgumentException("startCell must match first startCell in handovers");
@@ -64,7 +64,7 @@ public class Call extends AbstractCallOrText {
         return handovers;
     }
     private void setHandovers(ArrayList<Handover> handovers) {
-        if(startCellMatchesHandoverStart(getStartCell(), handovers)) {
+        if (startCellMatchesHandoverStart(getStartCell(), handovers)) {
             this.handovers = handovers;
         } else {
             throw new IllegalArgumentException("startCell must match first startCell in handovers");
