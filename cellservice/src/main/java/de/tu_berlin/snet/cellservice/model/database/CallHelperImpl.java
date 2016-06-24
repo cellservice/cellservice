@@ -127,7 +127,7 @@ public class CallHelperImpl implements CallHelper {
         final String selectAllCalls =
                 "SELECT id, direction, address, starttime, endtime, startcell" +
                         "   FROM Calls" +
-                "LIMIT " + start + "," + end + ";";
+                " LIMIT " + start + "," + end + ";";
         try {
             TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllCalls);
             Vector<String[]> rows = tableResult.rows;

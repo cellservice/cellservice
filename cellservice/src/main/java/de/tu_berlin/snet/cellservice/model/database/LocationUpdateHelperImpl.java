@@ -130,7 +130,7 @@ public class LocationUpdateHelperImpl implements LocationUpdateHelper {
         ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
         final String selectLocationUpdatesByDate =
                 "SELECT id, startcell, endcell, time FROM LocationUpdates" +
-                        "LIMIT " + start + "," + end + ";";
+                        " LIMIT " + start + "," + end + ";";
         try {
             TableResult result = GeoDatabaseHelper.getInstance(context).getTable(selectLocationUpdatesByDate);
             Vector<String[]> rows = result.rows;

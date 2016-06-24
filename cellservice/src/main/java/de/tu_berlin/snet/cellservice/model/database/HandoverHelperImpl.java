@@ -141,7 +141,7 @@ public class HandoverHelperImpl implements HandoverHelper {
         ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
         final String selectHandoversByDate =
                 "SELECT id, startcell, endcell, time FROM Handovers" +
-                        "LIMIT " + start + "," + end + ";";
+                        " LIMIT " + start + "," + end + ";";
         try {
             TableResult result = GeoDatabaseHelper.getInstance(context).getTable(selectHandoversByDate);
             Vector<String[]> rows = result.rows;

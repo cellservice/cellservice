@@ -105,8 +105,8 @@ public class CellHelperImpl implements CellHelper {
         ArrayList<CellInfo> cellInfoArrayList = new ArrayList<CellInfo>();
         final String selectAllCells =
                 "SELECT id, cellid, lac, mnc, mcc, technology" +
-                        "   FROM Cells " +
-                "LIMIT " + start + "," + end + ";";
+                        "   FROM Cells" +
+                " LIMIT " + start + "," + end + ";";
         try {
             TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllCells);
             Vector<String[]> rows = tableResult.rows;

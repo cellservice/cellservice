@@ -119,8 +119,8 @@ public class DataHelperImpl implements DataHelper {
         }
         ArrayList<Data> dataArrayList = new ArrayList<Data>();
         final String selectDataRecordByDate =
-                "SELECT id, rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords " +
-                "LIMIT " + start + "," + end + ";";
+                "SELECT id, rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords" +
+                        " LIMIT " + start + "," + end + ";";
         try {
             TableResult result = GeoDatabaseHelper.getInstance(context).getTable(selectDataRecordByDate);
             Vector<String[]> rows = result.rows;

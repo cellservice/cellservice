@@ -118,7 +118,7 @@ public class TextMessageHelperImpl implements TextMessageHelper {
         final String selectTextMessagesByDate =
                 "SELECT id, direction, address, time, cell_id" +
                         "   FROM TextMessages" +
-                        "LIMIT " + start + "," + end + ";";
+                        " LIMIT " + start + "," + end + ";";
         try {
             TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectTextMessagesByDate);
             Vector<String[]> rows = tableResult.rows;

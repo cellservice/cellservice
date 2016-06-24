@@ -90,7 +90,7 @@ public class MeasurementsHelperImpl implements MeasurementsHelper {
         final String selectAllMeasurements =
                 "SELECT id, cell_id, provider, accuracy, time, event_id, event_type" +
                         "   FROM Measurements" +
-                        "LIMIT " + start + "," + end + ";";
+                        " LIMIT " + start + "," + end + ";";
         try {
             TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllMeasurements);
             Vector<String[]> rows = tableResult.rows;
