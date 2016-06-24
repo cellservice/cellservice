@@ -81,6 +81,29 @@ public class MeasurementsHelperImpl implements MeasurementsHelper {
         return measurementsArrayList;
     }
 
+    @Override
+    public ArrayList<Measurement> getMeasurementsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<Measurement> measurementsArrayList = new ArrayList<Measurement>();
+        final String selectAllMeasurements =
+                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type" +
+                        "   FROM Measurements" +
+                        "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllMeasurements);
+            Vector<String[]> rows = tableResult.rows;
+            for (String[] fields : rows) {
+                Measurement measurement = parseMeasurement(fields);
+                measurementsArrayList.add(measurement);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return measurementsArrayList;
+    }
+
     private Measurement parseMeasurement(String[] fields) {
         long id = Long.parseLong(fields[0]);
         int cellID = Integer.valueOf(fields[1]);

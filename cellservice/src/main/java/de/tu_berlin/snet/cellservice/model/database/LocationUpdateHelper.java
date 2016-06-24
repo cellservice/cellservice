@@ -14,4 +14,5 @@ public interface LocationUpdateHelper {
     ArrayList<LocationUpdate> getAllLocationUpdateRecords();
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date day);
     ArrayList<LocationUpdate> getLocationUpdateRecords(Date from, Date to);
+    ArrayList<LocationUpdate> getLocationUpdateRecordsPaginated(int start, int end) throws IllegalArgumentException;
 }

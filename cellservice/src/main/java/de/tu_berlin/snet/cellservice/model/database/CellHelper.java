@@ -12,4 +12,5 @@ public interface CellHelper {
     boolean insertRecord(CellInfo cellInfo);
     CellInfo getCellById(long id);
     ArrayList<CellInfo> getAllCellRecords();
+    ArrayList<CellInfo> getAllCellRecordsPaginated(int start, int end) throws IllegalArgumentException;
 }

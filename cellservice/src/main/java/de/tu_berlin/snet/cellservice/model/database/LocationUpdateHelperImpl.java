@@ -121,4 +121,28 @@ public class LocationUpdateHelperImpl implements LocationUpdateHelper {
 
         return locationUpdateArrayList;
     }
+
+    @Override
+    public ArrayList<LocationUpdate> getLocationUpdateRecordsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<LocationUpdate> locationUpdateArrayList = new ArrayList<LocationUpdate>();
+        final String selectLocationUpdatesByDate =
+                "SELECT id, startcell, endcell, time FROM LocationUpdates" +
+                        "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult result = GeoDatabaseHelper.getInstance(context).getTable(selectLocationUpdatesByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                LocationUpdate locationUpdate = parseLocationUpdate(row);
+                locationUpdateArrayList.add(locationUpdate);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(LOG_TAG, "could not find: " + selectLocationUpdatesByDate);
+        }
+
+        return locationUpdateArrayList;
+    }
 }

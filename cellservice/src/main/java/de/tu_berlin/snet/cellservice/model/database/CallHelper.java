@@ -14,4 +14,5 @@ public interface CallHelper {
     ArrayList<Call> getAllCallRecords();
     ArrayList<Call> getCallRecords(Date day);
     ArrayList<Call> getCallRecords(Date from, Date to);
+    ArrayList<Call> getCallRecordsPaginated(int start, int end) throws IllegalArgumentException;
 }

@@ -109,6 +109,29 @@ public class TextMessageHelperImpl implements TextMessageHelper {
         return textMessages;
     }
 
+    @Override
+    public ArrayList<TextMessage> getTextMessageRecordsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<TextMessage> textMessages = new ArrayList<TextMessage>();
+        final String selectTextMessagesByDate =
+                "SELECT id, direction, address, time, cell_id" +
+                        "   FROM TextMessages" +
+                        "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectTextMessagesByDate);
+            Vector<String[]> rows = tableResult.rows;
+            for (String[] fields : rows) {
+                TextMessage textMessage = parseTextMessage(fields);
+                textMessages.add(textMessage);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+        }
+        return textMessages;
+    }
+
     @NonNull
     private TextMessage parseTextMessage(String[] fields) {
         long id = Long.parseLong(fields[0]);

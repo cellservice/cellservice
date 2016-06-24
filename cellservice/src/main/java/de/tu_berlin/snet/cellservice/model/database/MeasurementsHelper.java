@@ -11,4 +11,5 @@ import de.tu_berlin.snet.cellservice.model.record.Measurement;
 public interface MeasurementsHelper {
     boolean insertMeasurements(CellInfo cellInfo, int eventId, int eventType);
     ArrayList<Measurement> getAllMeasurements();
+    ArrayList<Measurement> getMeasurementsPaginated(int start, int end) throws IllegalArgumentException;
 }

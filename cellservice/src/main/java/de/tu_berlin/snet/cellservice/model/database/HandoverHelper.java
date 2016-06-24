@@ -23,4 +23,5 @@ public interface HandoverHelper {
     ArrayList<Handover> getHandoverRecords(Date from, Date to);
     ArrayList<Handover> getAllHandoverRecords();
     ArrayList<Handover> getHandoversByCallId(long id);
+    ArrayList<Handover> getHandoverRecordsPaginated(int start, int end) throws IllegalArgumentException;
 }

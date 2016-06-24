@@ -14,4 +14,5 @@ public interface DataHelper {
     ArrayList<Data> getAllDataRecords();
     ArrayList<Data> getDataRecords(Date day);
     ArrayList<Data> getDataRecords(Date from, Date to);
+    ArrayList<Data> getDataRecordsPaginated(int start, int end) throws IllegalArgumentException;
 }

@@ -97,6 +97,29 @@ public class CellHelperImpl implements CellHelper {
         return cellInfoArrayList;
     }
 
+    @Override
+    public ArrayList<CellInfo> getAllCellRecordsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<CellInfo> cellInfoArrayList = new ArrayList<CellInfo>();
+        final String selectAllCells =
+                "SELECT id, cellid, lac, mnc, mcc, technology" +
+                        "   FROM Cells " +
+                "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllCells);
+            Vector<String[]> rows = tableResult.rows;
+            for(String[] fields : rows) {
+                CellInfo cellInfo = parseCell(fields);
+                cellInfoArrayList.add(cellInfo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return cellInfoArrayList;
+    }
+
     @NonNull
     private CellInfo parseCell(String[] fields) {
         long id = Long.parseLong(fields[0]);

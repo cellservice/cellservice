@@ -133,6 +133,30 @@ public class HandoverHelperImpl implements HandoverHelper {
         return handovers;
     }
 
+    @Override
+    public ArrayList<Handover> getHandoverRecordsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<Handover> handoverArrayList = new ArrayList<Handover>();
+        final String selectHandoversByDate =
+                "SELECT id, startcell, endcell, time FROM Handovers" +
+                        "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult result = GeoDatabaseHelper.getInstance(context).getTable(selectHandoversByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                Handover handover = parseHandover(row);
+                handoverArrayList.add(handover);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(LOG_TAG, "could not find: " + selectHandoversByDate);
+        }
+
+        return handoverArrayList;
+    }
+
     @NonNull
     private Handover parseHandover(String[] row) {
         long id = Long.parseLong(row[0]);

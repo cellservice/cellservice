@@ -112,6 +112,30 @@ public class DataHelperImpl implements DataHelper {
         return dataArrayList;
     }
 
+    @Override
+    public ArrayList<Data> getDataRecordsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<Data> dataArrayList = new ArrayList<Data>();
+        final String selectDataRecordByDate =
+                "SELECT id, rxbytes, txbytes, starttime, endtime, cell_id FROM DataRecords " +
+                "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult result = GeoDatabaseHelper.getInstance(context).getTable(selectDataRecordByDate);
+            Vector<String[]> rows = result.rows;
+            for (String[] row : rows) {
+                Data data = parseDataRecord(row);
+                dataArrayList.add(data);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+            Log.d(LOG_TAG, "could not find: " + selectDataRecordByDate);
+        }
+
+        return dataArrayList;
+    }
+
     @NonNull
     private Data parseDataRecord(String[] row) {
         CellInfo cellInfo = cellHelper.getCellById(Long.parseLong(row[5]));

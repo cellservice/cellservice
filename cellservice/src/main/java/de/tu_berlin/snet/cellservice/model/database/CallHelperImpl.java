@@ -118,6 +118,29 @@ public class CallHelperImpl implements CallHelper {
         return callArrayList;
     }
 
+    @Override
+    public ArrayList<Call> getCallRecordsPaginated(int start, int end) throws IllegalArgumentException {
+        if (start < 0 || end < 0 || end < start) {
+            throw new IllegalArgumentException("End must be greater than start and both must be greater than 0!");
+        }
+        ArrayList<Call> callArrayList = new ArrayList<Call>();
+        final String selectAllCalls =
+                "SELECT id, direction, address, starttime, endtime, startcell" +
+                        "   FROM Calls" +
+                "LIMIT " + start + "," + end + ";";
+        try {
+            TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllCalls);
+            Vector<String[]> rows = tableResult.rows;
+            for (String[] fields : rows) {
+                Call call = parseCall(fields);
+                callArrayList.add(call);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+        }
+        return callArrayList;
+    }
+
     @NonNull
     private Call parseCall(String[] fields) {
         long call_id = Long.valueOf(fields[0]);

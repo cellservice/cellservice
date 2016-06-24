@@ -14,4 +14,5 @@ public interface TextMessageHelper {
     ArrayList<TextMessage> getAllTextMessageRecords();
     ArrayList<TextMessage> getTextMessageRecords(Date day);
     ArrayList<TextMessage> getTextMessageRecords(Date from, Date to);
+    ArrayList<TextMessage> getTextMessageRecordsPaginated(int start, int end) throws IllegalArgumentException;
 }
