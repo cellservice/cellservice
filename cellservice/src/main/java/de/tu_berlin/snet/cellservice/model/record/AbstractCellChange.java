@@ -22,6 +22,7 @@ abstract class AbstractCellChange {
     }
 
     public AbstractCellChange(long id, CellInfo startCell, CellInfo endCell, long timestamp) {
+        setId(id);
         setStartCell(startCell);
         setEndCell(endCell);
         setTimestamp(timestamp);
