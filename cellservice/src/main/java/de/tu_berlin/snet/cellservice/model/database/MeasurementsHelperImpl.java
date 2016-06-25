@@ -66,7 +66,7 @@ public class MeasurementsHelperImpl implements MeasurementsHelper {
     public ArrayList<Measurement> getAllMeasurements() {
         ArrayList<Measurement> measurementsArrayList = new ArrayList<Measurement>();
         final String selectAllMeasurements =
-                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type" +
+                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type, X(centroid) as lon, Y(centroid) as lat" +
                         "   FROM Measurements;";
         try {
             TableResult tableResult = GeoDatabaseHelper.getInstance(context).getTable(selectAllMeasurements);
@@ -88,7 +88,7 @@ public class MeasurementsHelperImpl implements MeasurementsHelper {
         }
         ArrayList<Measurement> measurementsArrayList = new ArrayList<Measurement>();
         final String selectAllMeasurements =
-                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type" +
+                "SELECT id, cell_id, provider, accuracy, time, event_id, event_type, X(centroid) as lon, Y(centroid) as lat" +
                         "   FROM Measurements" +
                         " LIMIT " + start + "," + end + ";";
         try {
@@ -112,6 +112,8 @@ public class MeasurementsHelperImpl implements MeasurementsHelper {
         long time = Long.valueOf(fields[4]);
         int eventID = Integer.valueOf(fields[5]);
         int eventType = Integer.valueOf(fields[6]);
-        return new Measurement(id, cellID, provider, accuracy, time, eventID, eventType);
+        double lon = Double.valueOf(fields[7]);
+        double lat = Double.valueOf(fields[8]);
+        return new Measurement(id, cellID, provider, accuracy, time, eventID, eventType, lon, lat);
     }
 }
