@@ -236,9 +236,18 @@ public class MobileNetworkHelper extends ContextWrapper {
             if (action.equals("android.provider.Telephony.SMS_RECEIVED")) {
                 CellInfo cell = mCellInfoObserver.getCurrentCellInfo();
                 cell = addGPSLocation(addNetworkLocation(cell));
-                // TODO: ACQUIRE THE NUMBER THE TEXT MESSAGE HAS BEEN RECEIVED FROM, INSTEAD of "secret"
+
+                // Fetch sender address, see http://stackoverflow.com/a/9378365
+                Bundle bundle = intent.getExtras();
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                final SmsMessage[] messages = new SmsMessage[pdus.length];
+                for (int i = 0; i < pdus.length; i++) {
+                    messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                }
+                String senderAddress = messages[0].getOriginatingAddress();
+
                 for (CDRListener l : listeners) {
-                    l.onTextMessage(new TextMessage(cell, "incoming", Anonymizer.anonymize("secret")));
+                    l.onTextMessage(new TextMessage(cell, "incoming", Anonymizer.anonymize(senderAddress)));
                 }
             }
         }
