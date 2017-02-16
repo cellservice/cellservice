@@ -6,7 +6,11 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import de.tu_berlin.snet.cellservice.model.database.CallHelperImpl;
+import de.tu_berlin.snet.cellservice.model.database.DataHelperImpl;
 import de.tu_berlin.snet.cellservice.model.database.GeoDatabaseHelper;
+import de.tu_berlin.snet.cellservice.model.database.LocationUpdateHelperImpl;
+import de.tu_berlin.snet.cellservice.model.database.TextMessageHelperImpl;
 import de.tu_berlin.snet.cellservice.model.record.Call;
 import de.tu_berlin.snet.cellservice.model.record.Data;
 import de.tu_berlin.snet.cellservice.model.record.LocationUpdate;
@@ -72,25 +76,25 @@ public class CellService extends Service {
         @Override
         public void onDataSession(Data data) {
             Log.d("CDRReceiver", "received data: " + data);
-            geoDatabaseHelper.insertRecord(data);
+            new DataHelperImpl(CellService.this).insertRecord(data);
         }
 
         @Override
         public void onCallRecord(Call call) {
             Log.d("CDRReceiver", "received call: " + call);
-            geoDatabaseHelper.insertRecord(call);
+            new CallHelperImpl(CellService.this).insertRecord(call);
         }
 
         @Override
         public void onTextMessage(TextMessage textMessage) {
             Log.d("CDRReceiver", "received text: " + textMessage);
-            geoDatabaseHelper.insertRecord(textMessage);
+            new TextMessageHelperImpl(CellService.this).insertRecord(textMessage);
         }
 
         @Override
         public void onLocationUpdate(LocationUpdate locationUpdate) {
             Log.d("CDRReceiver", "received location update: " + locationUpdate);
-            geoDatabaseHelper.insertRecord(locationUpdate);
+            new LocationUpdateHelperImpl(CellService.this).insertRecord(locationUpdate);
         }
     }
 
