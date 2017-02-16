@@ -12,3 +12,6 @@ CellActivity helps visualizing and understanding the accuracy of this informatio
 ### What it cannot collect
 
 * Periodic [Location Updates](https://en.wikipedia.org/wiki/Mobility_management#Location_update_procedure) as defined by a Mobile Network Operator. I.e. every 6 hours or 30 minutes.
+
+### License
+The source code of this project is licensed under GPL v3. Please review [License file](LICENSE) for more details.
