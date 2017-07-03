@@ -7,7 +7,7 @@ CellActivity collects metadata about mobile data traffic, calls and text message
 ### Why use it
 Every record you create with your mobile device has a coarse location associated to it. A mobile network provider has knowledge of at least the same amount and quality of information to deduce a movement profile and potentially places you have been to throughout the day. This is an important component of [Telecommunications Data Retention](https://en.wikipedia.org/wiki/Telecommunications_data_retention).
 
-CellActivity helps visualizing and understanding the accuracy of this information. It is also intended to be used as a replacement for Facebook's Move App, and will also allow researchers to work with CDRs and DDRs.
+CellActivity helps visualizing and understanding the accuracy of this information. It will allow researchers to work with CDRs and DDRs and could also be used as a foundation for energy efficient movement-activity tracking.
 
 ### What it cannot collect
 
